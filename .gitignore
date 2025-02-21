@@ -1,0 +1,7 @@
+.venv
+.vscode
+models
+*.mp4
+*.mkv
+*.mp3
+*.xlsx
