@@ -1,5 +1,6 @@
-#import ffmpeg
+import ffmpeg
 import whisper
+import subprocess
 import os
 from math import log10
 from tkinter import END, HORIZONTAL, LEFT, SOLID, Button, Label, Listbox, StringVar, Toplevel, filedialog, messagebox, ttk, Tk
@@ -7,10 +8,14 @@ from datetime import datetime
 import xlsxwriter
 import traceback
 
+TEMP_INP_FILES_DIR = "./.top_inp"
+TEMP_OUT_FILES_DIR = "./.tmp_out"
+os.mkdir(TEMP_INP_FILES_DIR)
+os.mkdir(TEMP_OUT_FILES_DIR)
 
 MODELS_DIRECTORY="./models" # where to save the models to
 EXPECTED_RAW_FILE_TYPE='mp4' # placeholder, this might not be needed
-BEST_FILE_TYPE_FOR_TRANSCRIPTION='mp4' # placeholder, this might not be needed
+BEST_FILE_TYPE_FOR_TRANSCRIPTION='wav' # placeholder, this might not be needed
 
 
 class ToolTip(object):
@@ -64,17 +69,18 @@ def CreateToolTip(widget, text):
     widget.bind('<Enter>', enter)
     widget.bind('<Leave>', leave)
 
-# def convert_to_mp4(mkv_file, toType=BEST_FILE_TYPE_FOR_TRANSCRIPTION):
-#     name, ext = os.path.splitext(mkv_file)
-#     n = 1
-#     if ext.lower() != toType.lower():
-#         out_name = f"{name}.{toType}"
-#         while os.path.exists(out_name):
-#             out_name = f"{name}_{n}.{toType}"
-#             n+=1
-#         ffmpeg.input(mkv_file).output(out_name).run()
-#         return out_name
-#     return mkv_file
+def convert_file_type(oldfile, toType=BEST_FILE_TYPE_FOR_TRANSCRIPTION, toDir=None):
+	# extract base name, put to toDir when done
+    name, ext = os.path.splitext(oldfile)
+    n = 1
+    if ext.lower() != toType.lower():
+        out_name = f"{name}.{toType}"
+        while os.path.exists(out_name):
+            out_name = f"{name}_{n}.{toType}"
+            n+=1
+        ffmpeg.input(oldfile).output(out_name).run()
+        return out_name
+    return oldfile
 
 def write2sheet(workbook: xlsxwriter.Workbook, sheetname, data, headers=None, conditionalRules=None, headerNotes=None):
     worksheet = workbook.add_worksheet(sheetname)
@@ -101,6 +107,34 @@ def write2sheet(workbook: xlsxwriter.Workbook, sheetname, data, headers=None, co
     worksheet.autofit()
     return worksheet
 
+def transcribeDirectory(inpDir, outDir):
+	if not inpDir or not os.path.exists(inpDir) or not os.path.isDir(inpDir):
+		raise Error("Invalid directory")
+	if not outDir or not os.path.exists(outDir) or not os.path.isDir(outDir):
+		raise Error("Invalid directory")
+	#@todo enable multiple languages 
+	#@todo step 1
+	try:
+		result = subprocess.run(["batchalign", "transcribe", "--lang=en", inpDir, outDir])
+	except:
+		#@todo error popup
+		pass
+	#@todo step 2
+	try:
+		result = subprocess.run(["batchalign", "align", inpDir, outDir])
+	except:
+		#@todo error popup
+		pass
+	#@todo step 3
+	try:
+		result = subprocess.run(["batchalign", "morphotag", "--lang=en", inpDir, outDir])
+	except:
+		#@todo error popup
+		pass
+	#@todo what to do with the output? 
+	# open clan?
+	return
+
 def transcribeFiles(filelist, options):
     # colors used for conditional formatting
     hex_colors = {
@@ -126,16 +160,16 @@ def transcribeFiles(filelist, options):
     # process files
     for idx,fn in enumerate(filelist, start=1):
         try:
-            fnname, ext = os.path.splitext(fn)
+            fname, ext = os.path.splitext(fn)
             
-            # GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fnname}\nConverting file")
+            # GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fname}\nConverting file")
             # GUI_ROOT.update_idletasks()
             # if not fn.endswith(BEST_FILE_TYPE_FOR_TRANSCRIPTION):
-            #     convert_to_mp4(fn)
+            #     convert_file_type(fn)
             # GUI_progress_bar["value"] += pbarStepSize
             # GUI_ROOT.update_idletasks()
 
-            GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fnname}\nTranscribing file")
+            GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fname}\nTranscribing file")
             GUI_ROOT.update_idletasks()
             
             bySegment = []
@@ -147,13 +181,13 @@ def transcribeFiles(filelist, options):
                     bySegmentWord.append({'segmentID': seg['id'], 'start':word['start'], 'end':word['end'], 'text':word['word'].strip(), 'confidence': word['probability']})
             
             GUI_progress_bar["value"] += pbarStepSize
-            GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fnname}\nWriting output files...")
+            GUI_progress_label.config(text=f"#{idx:0>{progressBarPadding}}/{len(filelist):0>{progressBarPadding}}\n{fname}\nWriting output files...")
             GUI_ROOT.update_idletasks()
             
             n = 1
-            outname = f"{fnname}.xlsx"
+            outname = f"{fname}.xlsx"
             while os.path.exists(outname):
-                outname = f"{fnname}_{n}.xlsx"
+                outname = f"{fname}_{n}.xlsx"
                 n+=1
             
             outputFiles[fn] = outputFiles.get(fn, []) + [outname]
@@ -207,10 +241,14 @@ def transcribeFiles(filelist, options):
 def select_files():
     file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", "*.mp4;*.mp3;*.avi;*.mov;*.mkv;*.fla;*.*")])
     GUI_listbox.delete(0, END)
+    os.system(f"rm -rf {TEMP_INP_FILES_DIR}")
     for file in file_paths:
         GUI_listbox.insert(END, file)
+        fname, ext = os.path.splitext(file)
+        
+        
 
-def transcribeSelection():
+def transcribeSelection_whisper():
     ToolTip.hideall()
     if GUI_listbox.size() == 0:
         messagebox.showwarning("Warning", "Please select at least one video file.")
@@ -259,6 +297,55 @@ def transcribeSelection():
                 messagebox.showerror("Failure", f"Sorry, something went wrong while tring to open\n{fn}!\n\n{traceback.format_exc()}")
     return
 
+def transcribeSelection_batchalign():
+    ToolTip.hideall()
+    if GUI_listbox.size() == 0:
+        messagebox.showwarning("Warning", "Please select at least one video file.")
+        return
+
+    selectedFiles = [GUI_listbox.get(i) for i in range(GUI_listbox.size())]
+    options = {
+        'model': GUI_model_var.get()
+    }
+    
+    GUI_transcribe_button['state'] = 'disable'
+    GUI_ROOT.update_idletasks()
+    start = datetime.now()
+    resulting_files = {}
+    errors = {}
+    try:
+        results = transcribeFiles_batchalign(TEMP_INP_FILES_DIR, TEMP_OUT_FILES_DIR)
+        GUI_ROOT.update_idletasks()
+        end = datetime.now()
+    except Exception as e:
+        end = datetime.now()
+        errlog=traceback.format_exc()
+        print(errlog)
+        messagebox.showerror("Failure", f"Sorry, something went wrong while transcribing the files! Check console logs!")
+        GUI_transcribe_button['state'] = 'normal'
+        GUI_ROOT.update_idletasks()
+        return
+    errmsg = ""
+    if errors:
+        errmsg = f"\nWARNING! Failed to process {len(errors)} files.\n\n"
+        for k in errors:
+            errmsg += f"In: {k}\n{errors[k]}\n\n\n"
+    
+    decsion = messagebox.askyesno('Transcripts complete', f'Transcription completed for {len(resulting_files)} files.\nProcess took: {str(end-start)}.\n\n{errmsg}The output files should be located in the same place as the original input file.\n\nOpen the {sum([len(resulting_files[x]) for x in resulting_files])} output files for the {len(selectedFiles)} input files now?')
+    
+    GUI_transcribe_button['state'] = 'normal'
+    GUI_ROOT.update_idletasks()
+    for k in resulting_files:
+        for fn in resulting_files[k]:
+            try:
+                if decsion:
+                    os.startfile(filepath=fn, operation='open')
+                else:
+                    print(f"{k} ==> {fn}")
+            except Exception as e:
+                messagebox.showerror("Failure", f"Sorry, something went wrong while tring to open\n{fn}!\n\n{traceback.format_exc()}")
+    return
+    
 # GUI Setup
 GUI_ROOT = Tk()
 GUI_ROOT.title("Transcriber")
