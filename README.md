@@ -40,3 +40,11 @@
 - [ ] Advanced/Runtime configuration of AI parameters?
 - [ ] Bundle into single executable to be more user friendly?
 - [ ] Select subframe of time to transcribe from?
+
+If we use huggingface:
+see here for enabling symbolic links:
+`gpedit.msc` -> 
+![alt text](docs\readme_hf_allow_symlink.png)
+@todo show how you can add yourself to create symbolic links
+
+

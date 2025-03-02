@@ -1,0 +1,520 @@
+[03/02/25 11:21:31] DEBUG    Attempting to create               dispatch.py:134
+                             BatchalignPipeline for CLI...                     
+                    DEBUG    Initializing packages, got:         dispatch.py:64
+                             packages='['asr', 'speaker']' and                 
+                             config='{'DEFAULT': <Section:                     
+                             DEFAULT>, 'asr': <Section: asr>,                  
+                             'ud': <Section: ud>}'                             
+                    INFO     Initializing engines...             dispatch.py:85
+                    INFO     -------------------------------     dispatch.py:86
+                    INFO     | asr          |      whisper |    dispatch.py:100
+                    INFO     -------------------------------    dispatch.py:101
+                    DEBUG    Initializing whisper model...      infer_asr.py:67
+Device set to use cpu
+[03/02/25 11:21:32] DEBUG    Done, initalizing processor and    infer_asr.py:81
+                             config...                                         
+                    DEBUG    Whisper initialization done.       infer_asr.py:83
+                    DEBUG    Initializing utterance model...      whisper.py:46
+                    DEBUG    Done.                                whisper.py:52
+                    INFO     | speaker      | nemo_speaker |    dispatch.py:100
+                    INFO     -------------------------------    dispatch.py:101
+                    INFO     | disfluency   |  replacement |    dispatch.py:100
+                    INFO     -------------------------------    dispatch.py:101
+                    INFO     | retracing    |        ngram |    dispatch.py:100
+                    INFO     -------------------------------    dispatch.py:101
+                    DEBUG    Done initalizing packages.         dispatch.py:136
+                    DEBUG    Successfully created               dispatch.py:137
+                             BatchalignPipeline...                             
+                             <batchalign.pipelines.pipeline.Bat                
+                             chalignPipeline object at                         
+                             0x000002AB1DC313D0>                               
+                    INFO     Pipeline called with engines:       pipeline.py:81
+                             generator=<batchalign.pipelines.asr               
+                             .whisper.WhisperEngine object at                  
+                             0x000002AB1DC7C950>,                              
+                             processors=[<batchalign.pipelines.s               
+                             peaker.nemo_speaker.NemoSpeakerEngi               
+                             ne object at 0x000002AB1DB056A0>,                 
+                             <batchalign.pipelines.cleanup.disfl               
+                             uencies.DisfluencyReplacementEngine               
+                              object at 0x000002AB1DCFB620>,                   
+                             <batchalign.pipelines.cleanup.retra               
+                             ce.NgramRetraceEngine object at                   
+                             0x000002AB2048E2A0>], analyzer=None               
+                             on input of type <class 'str'>                    
+                    DEBUG    Transforming input of type: <class  pipeline.py:90
+                             'str'>                                            
+                    DEBUG    Final input type: <class 'str'>    pipeline.py:100
+                    DEBUG    Calling generator:                 pipeline.py:109
+                             <batchalign.pipelines.asr.whisper.                
+                             WhisperEngine object at                           
+                             0x000002AB1DC7C950>                               
+                    INFO     Whisper transcribing file...      infer_asr.py:125
+                    DEBUG    Whisper Preprocessing...          infer_asr.py:126
+                    DEBUG    Whisper Transcribing...           infer_asr.py:151
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50359]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+WhisperModel is using WhisperSdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True` or `layer_head_mask` not None. Falling back to the manual attention implementation, but specifying the manual implementation will be required from Transformers version v5.0.0 onwards. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.
+From v4.47 onwards, when a model cache is to be returned, `generate` will return a `Cache` instance instead by default (as opposed to the legacy tuple of tuples format). If you want to keep returning the legacy format, please set `return_legacy_cache=True`.
+Whisper did not predict an ending timestamp, which can happen if audio is cut off in the middle of a word. Also make sure WhisperTimeStampLogitsProcessor was used during generation.
+[03/02/25 11:21:52] DEBUG    Whisper Postprocessing...         infer_asr.py:184
+                    DEBUG    Whisper Done.                     infer_asr.py:253
+[03/02/25 11:21:53] DEBUG    Calling processor: processor 1/3,  pipeline.py:122
+                             <batchalign.pipelines.speaker.nemo                
+                             _speaker.NemoSpeakerEngine object                 
+                             at 0x000002AB1DB056A0>                            
+                    INFO     Running speaker ID on           nemo_speaker.py:40
+                             C:\Users\PC\Documents\python_sc                   
+                             ripts\videotranscript\.tmp_test                   
+                             \in\clip.mp3 with 2                               
+                             speaker(s)...                                     
+[NeMo I 2025-03-02 11:21:54 nemo_logging:393] Loading pretrained diar_msdd_telephonic model from NGC
+[NeMo I 2025-03-02 11:21:54 nemo_logging:393] Found existing object C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo.
+[NeMo I 2025-03-02 11:21:54 nemo_logging:393] Re-using file from: C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo
+[NeMo I 2025-03-02 11:21:54 nemo_logging:393] Instantiating model from pre-trained checkpoint
+[NeMo W 2025-03-02 11:21:55 nemo_logging:405] If you intend to do training or fine-tuning, please call the ModelPT.setup_training_data() method and provide a valid configuration file to setup the train data loader.
+    Train config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: true
+    
+[NeMo W 2025-03-02 11:21:55 nemo_logging:405] If you intend to do validation, please call the ModelPT.setup_validation_data() or ModelPT.setup_multiple_validation_data() method and provide a valid configuration file to setup the validation data loader(s). 
+    Validation config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: false
+    
+[NeMo W 2025-03-02 11:21:55 nemo_logging:405] Please call the ModelPT.setup_test_data() or ModelPT.setup_multiple_test_data() method and provide a valid configuration file to setup the test data loader(s).
+    Test config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: false
+    seq_eval_mode: false
+    
+[NeMo I 2025-03-02 11:21:55 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:21:55 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:21:55 nemo_logging:393] Model EncDecDiarLabelModel was successfully restored from C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo.
+[NeMo I 2025-03-02 11:21:55 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Loading pretrained vad_multilingual_marblenet model from NGC
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Found existing object C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo.
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Re-using file from: C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Instantiating model from pre-trained checkpoint
+[NeMo W 2025-03-02 11:21:56 nemo_logging:405] If you intend to do training or fine-tuning, please call the ModelPT.setup_training_data() method and provide a valid configuration file to setup the train data loader.
+    Train config : 
+    manifest_filepath: /manifests/ami_train_0.63.json,/manifests/freesound_background_train.json,/manifests/freesound_laughter_train.json,/manifests/fisher_2004_background.json,/manifests/fisher_2004_speech_sampled.json,/manifests/google_train_manifest.json,/manifests/icsi_all_0.63.json,/manifests/musan_freesound_train.json,/manifests/musan_music_train.json,/manifests/musan_soundbible_train.json,/manifests/mandarin_train_sample.json,/manifests/german_train_sample.json,/manifests/spanish_train_sample.json,/manifests/french_train_sample.json,/manifests/russian_train_sample.json
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 256
+    shuffle: true
+    is_tarred: false
+    tarred_audio_filepaths: null
+    tarred_shard_strategy: scatter
+    augmentor:
+      shift:
+        prob: 0.5
+        min_shift_ms: -10.0
+        max_shift_ms: 10.0
+      white_noise:
+        prob: 0.5
+        min_level: -90
+        max_level: -46
+        norm: true
+      noise:
+        prob: 0.5
+        manifest_path: /manifests/noise_0_1_musan_fs.json
+        min_snr_db: 0
+        max_snr_db: 30
+        max_gain_db: 300.0
+        norm: true
+      gain:
+        prob: 0.5
+        min_gain_dbfs: -10.0
+        max_gain_dbfs: 10.0
+        norm: true
+    num_workers: 16
+    pin_memory: true
+    
+[NeMo W 2025-03-02 11:21:56 nemo_logging:405] If you intend to do validation, please call the ModelPT.setup_validation_data() or ModelPT.setup_multiple_validation_data() method and provide a valid configuration file to setup the validation data loader(s). 
+    Validation config : 
+    manifest_filepath: /manifests/ami_dev_0.63.json,/manifests/freesound_background_dev.json,/manifests/freesound_laughter_dev.json,/manifests/ch120_moved_0.63.json,/manifests/fisher_2005_500_speech_sampled.json,/manifests/google_dev_manifest.json,/manifests/musan_music_dev.json,/manifests/mandarin_dev.json,/manifests/german_dev.json,/manifests/spanish_dev.json,/manifests/french_dev.json,/manifests/russian_dev.json
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 256
+    shuffle: false
+    val_loss_idx: 0
+    num_workers: 16
+    pin_memory: true
+    
+[NeMo W 2025-03-02 11:21:56 nemo_logging:405] Please call the ModelPT.setup_test_data() or ModelPT.setup_multiple_test_data() method and provide a valid configuration file to setup the test data loader(s).
+    Test config : 
+    manifest_filepath: null
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 128
+    shuffle: false
+    test_loss_idx: 0
+    
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Model EncDecClassificationModel was successfully restored from C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo.
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Multiscale Weights: [1, 1, 1, 1, 1]
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Clustering Parameters: {
+        "oracle_num_speakers": true,
+        "max_num_speakers": 8,
+        "enhanced_count_thres": 80,
+        "max_rp_threshold": 0.25,
+        "sparse_search_volume": 30,
+        "maj_vote_spk_count": false,
+        "chunk_cluster_count": 50,
+        "embeddings_per_chunk": 10000
+    }
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Split long audio file to avoid CUDA memory issue
+System.Management.Automation.RemoteException
+splitting manifest:   0%|          | 0/1 [00:00<?, ?it/s]
+splitting manifest: 100%|##########| 1/1 [00:00<00:00,  1.62it/s]
+splitting manifest: 100%|##########| 1/1 [00:00<00:00,  1.62it/s]
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Perform streaming frame-level VAD
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] Dataset successfully loaded with 1 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:21:56 nemo_logging:393] # 1 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Generating predictions with overlapping input segments
+System.Management.Automation.RemoteException
+generating preds:   0%|          | 0/1 [00:00<?, ?it/s]
+generating preds: 100%|##########| 1/1 [00:00<00:00,  5.17it/s]
+                                                               
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Converting frame level prediction to speech/no-speech segment in start and end times format.
+System.Management.Automation.RemoteException
+creating speech segments:   0%|          | 0/1 [00:00<?, ?it/s]
+creating speech segments: 100%|##########| 1/1 [00:00<00:00, 13.89it/s]
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Subsegmentation for embedding extraction: scale0, C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale0.json
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] Dataset successfully loaded with 11 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:22:02 nemo_logging:393] # 11 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] Subsegmentation for embedding extraction: scale1, C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale1.json
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] Dataset successfully loaded with 12 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:22:23 nemo_logging:393] # 12 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] Subsegmentation for embedding extraction: scale2, C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale2.json
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] Dataset successfully loaded with 13 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:23:17 nemo_logging:393] # 13 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] Subsegmentation for embedding extraction: scale3, C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale3.json
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] Dataset successfully loaded with 16 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:24:05 nemo_logging:393] # 16 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] Subsegmentation for embedding extraction: scale4, C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale4.json
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] Dataset successfully loaded with 60 items and total duration provided from manifest is  0.04 hours.
+[NeMo I 2025-03-02 11:24:25 nemo_logging:393] # 60 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings
+[NeMo W 2025-03-02 11:25:33 nemo_logging:405] cuda=False, using CPU for eigen decomposition. This might slow down the clustering process.
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Outputs are saved in C:\Users\PC\AppData\Local\Temp\tmplpd8exzt directory
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading embedding pickle file of scale:0 at C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings\subsegments_scale0_embeddings.pkl
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading embedding pickle file of scale:1 at C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings\subsegments_scale1_embeddings.pkl
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading embedding pickle file of scale:2 at C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings\subsegments_scale2_embeddings.pkl
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading embedding pickle file of scale:3 at C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings\subsegments_scale3_embeddings.pkl
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading embedding pickle file of scale:4 at C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\embeddings\subsegments_scale4_embeddings.pkl
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Loading cluster label file from C:\Users\PC\AppData\Local\Temp\tmplpd8exzt\speaker_outputs\subsegments_scale4_cluster.label
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Filtered duration for loading collection is 0.000000.
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Total 1 session files loaded accounting to # 1 audio clips
+System.Management.Automation.RemoteException
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|##########| 1/1 [00:00<00:00, 49.42it/s]
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393]      [Threshold: 0.7000] [use_clus_as_main=False] [diar_window=50]
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:25:33 nemo_logging:393]   
+    
+[03/02/25 11:25:33] DEBUG    Speaker ID finished.            nemo_speaker.py:42
+                    DEBUG    Calling processor: processor 2/3,  pipeline.py:122
+                             <batchalign.pipelines.cleanup.disf                
+                             luencies.DisfluencyReplacementEngi                
+                             ne object at 0x000002AB1DCFB620>                  
+                    DEBUG    Calling processor: processor 3/3,  pipeline.py:122
+                             <batchalign.pipelines.cleanup.retr                
+                             ace.NgramRetraceEngine object at                  
+                             0x000002AB2048E2A0>                               
+
+WARN on .tmp_test\in\clip.mp3:
+ The input name `inputs` is deprecated. Please make sure to use 
+`input_features` instead.
+
+                    INFO     Pipeline called with engines:       pipeline.py:81
+                             generator=<batchalign.pipelines.asr               
+                             .whisper.WhisperEngine object at                  
+                             0x000002AB1DC7C950>,                              
+                             processors=[<batchalign.pipelines.s               
+                             peaker.nemo_speaker.NemoSpeakerEngi               
+                             ne object at 0x000002AB1DB056A0>,                 
+                             <batchalign.pipelines.cleanup.disfl               
+                             uencies.DisfluencyReplacementEngine               
+                              object at 0x000002AB1DCFB620>,                   
+                             <batchalign.pipelines.cleanup.retra               
+                             ce.NgramRetraceEngine object at                   
+                             0x000002AB2048E2A0>], analyzer=None               
+                             on input of type <class 'str'>                    
+                    DEBUG    Transforming input of type: <class  pipeline.py:90
+                             'str'>                                            
+                    DEBUG    Final input type: <class 'str'>    pipeline.py:100
+                    DEBUG    Calling generator:                 pipeline.py:109
+                             <batchalign.pipelines.asr.whisper.                
+                             WhisperEngine object at                           
+                             0x000002AB1DC7C950>                               
+                    INFO     Whisper transcribing file...      infer_asr.py:125
+                    DEBUG    Whisper Preprocessing...          infer_asr.py:126
+                    DEBUG    Whisper Transcribing...           infer_asr.py:151
+Whisper did not predict an ending timestamp, which can happen if audio is cut off in the middle of a word. Also make sure WhisperTimeStampLogitsProcessor was used during generation.
+[03/02/25 11:26:05] DEBUG    Whisper Postprocessing...         infer_asr.py:184
+                    DEBUG    Whisper Done.                     infer_asr.py:253
+                    DEBUG    Calling processor: processor 1/3,  pipeline.py:122
+                             <batchalign.pipelines.speaker.nemo                
+                             _speaker.NemoSpeakerEngine object                 
+                             at 0x000002AB1DB056A0>                            
+                    INFO     Running speaker ID on           nemo_speaker.py:40
+                             C:\Users\PC\Documents\python_sc                   
+                             ripts\videotranscript\.tmp_test                   
+                             \in\clip2.mp3 with 2                              
+                             speaker(s)...                                     
+[NeMo I 2025-03-02 11:26:05 nemo_logging:393] Loading pretrained diar_msdd_telephonic model from NGC
+[NeMo I 2025-03-02 11:26:05 nemo_logging:393] Found existing object C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo.
+[NeMo I 2025-03-02 11:26:05 nemo_logging:393] Re-using file from: C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo
+[NeMo I 2025-03-02 11:26:05 nemo_logging:393] Instantiating model from pre-trained checkpoint
+[NeMo W 2025-03-02 11:26:07 nemo_logging:405] If you intend to do training or fine-tuning, please call the ModelPT.setup_training_data() method and provide a valid configuration file to setup the train data loader.
+    Train config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: true
+    
+[NeMo W 2025-03-02 11:26:07 nemo_logging:405] If you intend to do validation, please call the ModelPT.setup_validation_data() or ModelPT.setup_multiple_validation_data() method and provide a valid configuration file to setup the validation data loader(s). 
+    Validation config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: false
+    
+[NeMo W 2025-03-02 11:26:07 nemo_logging:405] Please call the ModelPT.setup_test_data() or ModelPT.setup_multiple_test_data() method and provide a valid configuration file to setup the test data loader(s).
+    Test config : 
+    manifest_filepath: null
+    emb_dir: null
+    sample_rate: 16000
+    num_spks: 2
+    soft_label_thres: 0.5
+    labels: null
+    batch_size: 15
+    emb_batch_size: 0
+    shuffle: false
+    seq_eval_mode: false
+    
+[NeMo I 2025-03-02 11:26:07 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:26:07 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Model EncDecDiarLabelModel was successfully restored from C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\diar_msdd_telephonic\3c3697a0a46f945574fa407149975a13\diar_msdd_telephonic.nemo.
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Loading pretrained vad_multilingual_marblenet model from NGC
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Found existing object C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo.
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Re-using file from: C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Instantiating model from pre-trained checkpoint
+[NeMo W 2025-03-02 11:26:08 nemo_logging:405] If you intend to do training or fine-tuning, please call the ModelPT.setup_training_data() method and provide a valid configuration file to setup the train data loader.
+    Train config : 
+    manifest_filepath: /manifests/ami_train_0.63.json,/manifests/freesound_background_train.json,/manifests/freesound_laughter_train.json,/manifests/fisher_2004_background.json,/manifests/fisher_2004_speech_sampled.json,/manifests/google_train_manifest.json,/manifests/icsi_all_0.63.json,/manifests/musan_freesound_train.json,/manifests/musan_music_train.json,/manifests/musan_soundbible_train.json,/manifests/mandarin_train_sample.json,/manifests/german_train_sample.json,/manifests/spanish_train_sample.json,/manifests/french_train_sample.json,/manifests/russian_train_sample.json
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 256
+    shuffle: true
+    is_tarred: false
+    tarred_audio_filepaths: null
+    tarred_shard_strategy: scatter
+    augmentor:
+      shift:
+        prob: 0.5
+        min_shift_ms: -10.0
+        max_shift_ms: 10.0
+      white_noise:
+        prob: 0.5
+        min_level: -90
+        max_level: -46
+        norm: true
+      noise:
+        prob: 0.5
+        manifest_path: /manifests/noise_0_1_musan_fs.json
+        min_snr_db: 0
+        max_snr_db: 30
+        max_gain_db: 300.0
+        norm: true
+      gain:
+        prob: 0.5
+        min_gain_dbfs: -10.0
+        max_gain_dbfs: 10.0
+        norm: true
+    num_workers: 16
+    pin_memory: true
+    
+[NeMo W 2025-03-02 11:26:08 nemo_logging:405] If you intend to do validation, please call the ModelPT.setup_validation_data() or ModelPT.setup_multiple_validation_data() method and provide a valid configuration file to setup the validation data loader(s). 
+    Validation config : 
+    manifest_filepath: /manifests/ami_dev_0.63.json,/manifests/freesound_background_dev.json,/manifests/freesound_laughter_dev.json,/manifests/ch120_moved_0.63.json,/manifests/fisher_2005_500_speech_sampled.json,/manifests/google_dev_manifest.json,/manifests/musan_music_dev.json,/manifests/mandarin_dev.json,/manifests/german_dev.json,/manifests/spanish_dev.json,/manifests/french_dev.json,/manifests/russian_dev.json
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 256
+    shuffle: false
+    val_loss_idx: 0
+    num_workers: 16
+    pin_memory: true
+    
+[NeMo W 2025-03-02 11:26:08 nemo_logging:405] Please call the ModelPT.setup_test_data() or ModelPT.setup_multiple_test_data() method and provide a valid configuration file to setup the test data loader(s).
+    Test config : 
+    manifest_filepath: null
+    sample_rate: 16000
+    labels:
+    - background
+    - speech
+    batch_size: 128
+    shuffle: false
+    test_loss_idx: 0
+    
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] PADDING: 16
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Model EncDecClassificationModel was successfully restored from C:\Users\PC\.cache\torch\NeMo\NeMo_2.3.0rc0\vad_multilingual_marblenet\670f425c7f186060b7a7268ba6dfacb2\vad_multilingual_marblenet.nemo.
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Multiscale Weights: [1, 1, 1, 1, 1]
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Clustering Parameters: {
+        "oracle_num_speakers": true,
+        "max_num_speakers": 8,
+        "enhanced_count_thres": 80,
+        "max_rp_threshold": 0.25,
+        "sparse_search_volume": 30,
+        "maj_vote_spk_count": false,
+        "chunk_cluster_count": 50,
+        "embeddings_per_chunk": 10000
+    }
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Split long audio file to avoid CUDA memory issue
+System.Management.Automation.RemoteException
+splitting manifest:   0%|          | 0/1 [00:00<?, ?it/s]
+splitting manifest: 100%|##########| 1/1 [00:00<00:00, 98.75it/s]
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Perform streaming frame-level VAD
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] Dataset successfully loaded with 1 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:26:08 nemo_logging:393] # 1 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Generating predictions with overlapping input segments
+System.Management.Automation.RemoteException
+generating preds:   0%|          | 0/1 [00:00<?, ?it/s]
+generating preds: 100%|##########| 1/1 [00:00<00:00,  9.13it/s]
+                                                               
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Converting frame level prediction to speech/no-speech segment in start and end times format.
+System.Management.Automation.RemoteException
+creating speech segments:   0%|          | 0/1 [00:00<?, ?it/s]
+creating speech segments: 100%|##########| 1/1 [00:00<00:00, 41.87it/s]
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Subsegmentation for embedding extraction: scale0, C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale0.json
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] Dataset successfully loaded with 8 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:26:12 nemo_logging:393] # 8 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] Subsegmentation for embedding extraction: scale1, C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale1.json
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] Dataset successfully loaded with 9 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:26:25 nemo_logging:393] # 9 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] Subsegmentation for embedding extraction: scale2, C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale2.json
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] Dataset successfully loaded with 12 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:26:43 nemo_logging:393] # 12 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] Subsegmentation for embedding extraction: scale3, C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale3.json
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] Dataset successfully loaded with 16 items and total duration provided from manifest is  0.01 hours.
+[NeMo I 2025-03-02 11:27:08 nemo_logging:393] # 16 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] Subsegmentation for embedding extraction: scale4, C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale4.json
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] Extracting embeddings for Diarization
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] Filtered duration for loading collection is  0.00 hours.
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] Dataset successfully loaded with 59 items and total duration provided from manifest is  0.04 hours.
+[NeMo I 2025-03-02 11:27:23 nemo_logging:393] # 59 files loaded accounting to # 1 labels
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Saved embedding files to C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings
+[NeMo W 2025-03-02 11:27:57 nemo_logging:405] cuda=False, using CPU for eigen decomposition. This might slow down the clustering process.
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Outputs are saved in C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf directory
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading embedding pickle file of scale:0 at C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings\subsegments_scale0_embeddings.pkl
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading embedding pickle file of scale:1 at C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings\subsegments_scale1_embeddings.pkl
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading embedding pickle file of scale:2 at C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings\subsegments_scale2_embeddings.pkl
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading embedding pickle file of scale:3 at C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings\subsegments_scale3_embeddings.pkl
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading embedding pickle file of scale:4 at C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\embeddings\subsegments_scale4_embeddings.pkl
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Loading cluster label file from C:\Users\PC\AppData\Local\Temp\tmpkhapg_bf\speaker_outputs\subsegments_scale4_cluster.label
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Filtered duration for loading collection is 0.000000.
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Total 1 session files loaded accounting to # 1 audio clips
+System.Management.Automation.RemoteException
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|##########| 1/1 [00:00<00:00, 66.21it/s]
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393]      [Threshold: 0.7000] [use_clus_as_main=False] [diar_window=50]
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393] Number of files to diarize: 1
+[NeMo I 2025-03-02 11:27:57 nemo_logging:393]   
+    
+[03/02/25 11:27:57] DEBUG    Speaker ID finished.            nemo_speaker.py:42
+                    DEBUG    Calling processor: processor 2/3,  pipeline.py:122
+                             <batchalign.pipelines.cleanup.disf                
+                             luencies.DisfluencyReplacementEngi                
+                             ne object at 0x000002AB1DCFB620>                  
+                    DEBUG    Calling processor: processor 3/3,  pipeline.py:122
+                             <batchalign.pipelines.cleanup.retr                
+                             ace.NgramRetraceEngine object at                  
+                             0x000002AB2048E2A0>                               
+
+WARN on .tmp_test\in\clip2.mp3:
+ The input name `inputs` is deprecated. Please make sure to use 
+`input_features` instead.
+`torch.cuda.amp.autocast(args...)` is deprecated. Please use 
+`torch.amp.autocast('cuda', args...)` instead.
+User provided device_type of 'cuda', but CUDA is not available. Disabling
+

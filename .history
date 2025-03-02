@@ -1,0 +1,79 @@
+2025-03-02 12:45:37,641 - [2J[m[HMicrosoft Windows [Version 10.0.19045.5487]]0;C:\WINDOWS\system32\cmd.exe[?25h
+(c) Microsoft Corporation. All rights reserved.      
+[53X
+C:\Users\PC\Documents\python_scripts\videotranscript>
+2025-03-02 12:45:38,059 - [25l[HMicrosoft Windows [Version 10.0.19045.5487][K
+(c) Microsoft Corporation. All rights reserved.[K
+[K
+C:\Users\PC\Documents\python_scripts\videotranscript>[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[4;54H[?25h
+2025-03-02 12:45:39,577 - k
+2025-03-02 12:45:39,692 - ls
+2025-03-02 12:45:39,984 -  
+2025-03-02 12:45:40,096 -  
+2025-03-02 12:45:40,233 -  
+2025-03-02 12:45:40,433 - l
+2025-03-02 12:45:40,543 - s
+2025-03-02 12:45:40,651 - 
+[25l'ls' is not recognized as an internal or external command,
+operable program or batch file.[27X
+[58X
+C:\Users\PC\Documents\python_scripts\videotranscript>     [8;54H[?25h
+2025-03-02 12:45:41,513 - d
+2025-03-02 12:45:41,681 - i
+2025-03-02 12:45:41,794 - r
+2025-03-02 12:45:41,901 - 
+ Volume in drive C has no label.[34X
+ Volume Serial Number is 4497-65B2[32X
+[66X
+ Directory of C:\Users\PC\Documents\python_scripts\videotranscript
+[66X
+03/02/2025  12:45 PM    <DIR>          .[26X
+03/02/2025  12:45 PM    <DIR>          ..[25X
+02/21/2025  12:17 PM                51 .gitignore[17X
+03/02/2025  12:45 PM               542 .history[19X
+03/02/2025  12:16 PM    <DIR>          .tmp_align[17X
+03/01/2025  12:11 PM    <DIR>          .tmp_inp[19X]0;C:\WINDOWS\system32\cmd.exe - dir
+03/02/2025  09:38 AM    <DIR>          .tmp_test
+03/02/2025  10:27 AM    <DIR>          .venv
+02/21/2025  08:12 AM    <DIR>          .vscode
+03/02/2025  12:08 PM               462 banotes.txt
+03/01/2025  11:45 AM             1,219 baproc.py
+03/01/2025  01:24 PM               843 CHTFile.py
+03/01/2025  11:44 AM    <DIR>          docs
+03/02/2025  12:27 PM             1,924 embeded_terminal.py
+03/02/2025  11:27 AM            39,462 err.txt
+11/16/2020  08:45 AM        75,723,264 ffmpeg.exe
+03/01/
+2025-03-02 12:45:41,904 - 2025  11:25 AM                37 hftoken
+03/01/2025  08:52 AM    <DIR>          models
+03/02/2025  12:45 PM             3,393 new gui test.py
+03/01/2025  10:23 AM             1,657 r.txt
+03/02/2025  10:52 AM             1,490 r2.txt
+03/01/2025  11:45 AM             2,083 README.md
+03/01/2025  09:01 AM               486 requirements.txt
+03/01/2025  04:26 PM             7,734 sat_3_1_2025.py
+02/21/2025  08:10 AM        41,637,532 shortclip.mkv
+02/21/2025  10:41 AM         6,458,482 shortclip.mp4
+03/02/2025  12:39 PM                18 sun_3_2_2025.py
+03/01/2025  02:28 PM             1,169 timelinereader.py
+03/01/2025  09:02 AM            18,210 transcribe.py
+03/01/2025  02:55 PM    <DIR>          __pycache__
+              20 File(s)    123,900,058 bytes
+              10 Dir(s)  51,103,244,288 bytes free
+]0;C:\WINDOWS\system32\cmd.exe
+C:\Users\PC\Documents\python_scripts\videotranscript>

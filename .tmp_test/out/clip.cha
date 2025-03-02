@@ -1,0 +1,48 @@
+@UTF8
+@Begin
+@Languages:	eng
+@Participants:	PAR0 Participant, PAR1 Participant
+@ID:	eng|corpus_name|PAR0|||||Participant|||
+@ID:	eng|corpus_name|PAR1|||||Participant|||
+@Media:	clip2, audio
+*PAR0:	can I just clarify the chief's hypo though in both situations the job stays open for a few months . 620_7880
+%mor:	aux|can-Fin-S pron|I-Prs-Nom-S1 adv|just verb|clarify-Inf-S det|the-Def-Art noun|chief~part|s noun|hypo-Acc adv|though adp|in det|both-Def-Tot noun|situation-Plur det|the-Def-Art noun|job verb|stay-Fin-Ind-Pres-S3 adj|open-S1 adp|for det|a-Ind-Art adj|few-S1 noun|month-Plur .
+%gra:	1|4|AUX 2|4|NSUBJ 3|4|ADVMOD 4|20|ROOT 5|6|DET 6|8|NMOD-POSS 7|6|CASE 8|4|OBJ 9|4|ADVMOD 10|12|CASE 11|12|DET 12|4|OBL 13|14|DET 14|15|NSUBJ 15|4|PARATAXIS 16|15|XCOMP 17|20|CASE 18|20|DET 19|20|AMOD 20|15|OBL 21|4|PUNCT
+%wor:	can 620_720 I 780_800 just 820_980 clarify 1001_1501 the 1541_1621 chief's 1721_2102 hypo 2482_2762 though 3223_3443 in 3843_3903 both 3984_4184 situations 4244_5145 the 5585_5705 job 6246_6506 stays 6566_6806 open 6926_7167 for 7247_7347 a 7367_7387 few 7427_7567 months 7627_7880 .
+*PAR1:	but then it is filled by a person of a different race . 7988_12080
+%mor:	cconj|but adv|then pron|it-Prs-Nom-S3 aux|be-Fin-Ind-Pres-S3 verb|fill-Part-Past-S adp|by det|a-Ind-Art noun|person adp|of det|a-Ind-Art adj|different-S1 noun|race .
+%gra:	1|5|CC 2|5|ADVMOD 3|5|NSUBJ-PASS 4|5|AUX-PASS 5|12|ROOT 6|8|CASE 7|8|DET 8|5|OBL-AGENT 9|12|CASE 10|12|DET 11|12|AMOD 12|8|NMOD 13|5|PUNCT
+%wor:	but 7988_8108 then 8148_8308 it 8368_8468 is 8608_8708 filled 8828_9249 by 9789_9929 a 9950_9970 person 10030_10370 of 10410_10490 a 10530_10550 different 10630_11051 race 11751_12080 .
+*PAR1:	is that right I was under the understanding under the chief justice's hypothetical . 12152_16920
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|that-Dem adj|right-S1 pron|I-Prs-Nom-S1 aux|be-Fin-Ind-Past-S1-irr adp|under det|the-Def-Art noun|understanding-Ger adp|under det|the-Def-Art adj|chief-S1 noun|justice~part|s adj|hypothetical-S1 .
+%gra:	1|8|COP 2|8|NSUBJ 3|8|DISCOURSE 4|8|NSUBJ 5|8|COP 6|8|CASE 7|8|DET 8|14|ROOT 9|14|CASE 10|12|DET 11|12|AMOD 12|14|NMOD-POSS 13|12|CASE 14|8|NMOD 15|8|PUNCT
+%wor:	is 12152_12232 that 12252_12412 right 12472_12732 I 14314_14334 was 14374_14494 under 14554_14754 the 14794_14874 understanding 14914_15375 under 15415_15555 the 15595_15675 chief 16036_16196 justice's 16236_16576 hypothetical 16596_16920 .
+*PAR1:	it remained open . 17077_18157
+%mor:	pron|it-Prs-Nom-S3 verb|remain-Fin-Ind-Past-S3 adj|open-S1 .
+%gra:	1|2|NSUBJ 2|3|ROOT 3|2|XCOMP 4|2|PUNCT
+%wor:	it 17077_17177 remained 17277_17617 open 17657_18157 .
+*PAR1:	it just remained open yeah . 18398_19900
+%mor:	pron|it-Prs-Nom-S3 adv|just verb|remain-Fin-Ind-Past-S3 adj|open-S1 intj|yeah .
+%gra:	1|3|NSUBJ 2|3|ADVMOD 3|5|ROOT 4|3|XCOMP 5|3|DISCOURSE 6|3|PUNCT
+%wor:	it 18398_18438 just 18458_18618 remained 18678_18999 open 19059_19319 yeah 19639_19900 .
+*PAR1:	that's enough my understanding too . 19960_21203
+%mor:	pron|that-Dem~aux|be-Fin-Ind-Pres-S3 adj|enough-S1 pron|my-Prs-Gen-S1 noun|understanding-Acc-Ger adv|too .
+%gra:	1|3|NSUBJ 2|3|COP 3|6|ROOT 4|5|NMOD-POSS 5|3|OBJ 6|3|ADVMOD 7|3|PUNCT
+%wor:	that's 19960_20180 enough 20180_20581 my 20581_20702 understanding 20742_21203 too .
+*PAR0:	that was my [/] my sorry . 21764_22486
+%mor:	pron|that-Dem aux|be-Fin-Ind-Past-S3-irr pron|my-Prs-Gen-S1 adj|sorry-S1 .
+%gra:	1|4|NSUBJ 2|4|COP 3|4|NMOD-POSS 4|4|ROOT 5|4|PUNCT
+%wor:	that 21764_21865 was 21905_22005 my 22045_22165 my 22326_22486 sorry .
+*PAR1:	and I'm happy to answer alternative . 23790_26495
+%mor:	cconj|and pron|I-Prs-Nom-S1~aux|be-Fin-Ind-Pres-S1 adj|happy-S1 part|to verb|answer-Inf-S noun|alternative-Acc .
+%gra:	1|4|CC 2|4|NSUBJ 3|4|COP 4|7|ROOT 5|6|MARK 6|4|XCOMP 7|6|OBJ 8|4|PUNCT
+%wor:	and 23790_23890 I'm 23950_24010 happy 24050_24251 to 24311_24933 answer 25674_25875 alternative 25995_26495 .
+*PAR1:	yeah sorry . 26617_27100
+%mor:	intj|yeah adj|sorry-S1 .
+%gra:	1|2|DISCOURSE 2|2|ROOT 3|2|PUNCT
+%wor:	yeah 26617_26797 sorry 26938_27100 .
+*PAR0:	sorry about that . 27339_28260
+%mor:	adj|sorry-S1 adp|about pron|that-Dem .
+%gra:	1|3|ROOT 2|3|CASE 3|1|OBL 4|1|PUNCT
+%wor:	sorry 27339_27539 about 27559_27740 that 27760_28260 .
+@End

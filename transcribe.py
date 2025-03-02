@@ -8,7 +8,7 @@ from datetime import datetime
 import xlsxwriter
 import traceback
 
-TEMP_INP_FILES_DIR = "./.top_inp"
+TEMP_INP_FILES_DIR = "./.tmp_inp"
 TEMP_OUT_FILES_DIR = "./.tmp_out"
 os.mkdir(TEMP_INP_FILES_DIR)
 os.mkdir(TEMP_OUT_FILES_DIR)
@@ -245,8 +245,6 @@ def select_files():
     for file in file_paths:
         GUI_listbox.insert(END, file)
         fname, ext = os.path.splitext(file)
-        
-        
 
 def transcribeSelection_whisper():
     ToolTip.hideall()
@@ -345,7 +343,7 @@ def transcribeSelection_batchalign():
             except Exception as e:
                 messagebox.showerror("Failure", f"Sorry, something went wrong while tring to open\n{fn}!\n\n{traceback.format_exc()}")
     return
-    
+
 # GUI Setup
 GUI_ROOT = Tk()
 GUI_ROOT.title("Transcriber")
