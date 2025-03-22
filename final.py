@@ -162,13 +162,19 @@ class SelectedFileConfigElement:
         # insert spinbox
         self.spinbox_num_speakers = Spinbox(self.row_frame, from_=min_speakers, to=max_speakers, justify=CENTER, width=5, )
         self.spinbox_num_speakers.pack(side=LEFT, padx=5, pady=0)
+        ToolTip(self.spinbox_num_speakers, "Estimated number of speakers in this file.\nBetween 1 thru 99 inclusive.")
         # insert language selection
         self.lang_combo = Combobox(self.row_frame, values=languages, width=10)
         self.lang_combo.pack(side=LEFT, padx=5)
         self.lang_combo.set(languages[0])
+        ToolTip(self.spinbox_num_speakers, "The language to be transcribed.\nIf its not here then its not supported :c")
+
         # insert delete button
-        self.delete_button = Button(self.row_frame, text="Delete", command=self.delete_row)
+        # 🗑️= \U0001F5D1; 🗴 1F5F4 🗶 1F5F6 🞨 1F7A8; 🞩 1F7A9; 🞪 1F7AA;🞫 1F7AB;🞬1F7AC;🞭1F7AD;🞮1F7AE;
+        self.delete_button = Button(self.row_frame, text="\U0001F5D1\U0001F7AE", command=self.delete_row, font=BUTTON_FONT)
         self.delete_button.pack(side=LEFT, padx=5)
+        ToolTip(self.delete_button, "Remove this file from the list of files to be transcribed.")
+
         SelectedFileConfigElement.MANAGER.append(self)
     
     def set_clipboard_to_filepath(self, event):
