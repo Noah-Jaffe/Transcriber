@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, Label, Spinbox, Toplevel, filedialog, Frame
+from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, Label, Spinbox, StringVar, Toplevel, filedialog, Frame
 from tkinter.font import BOLD, ITALIC, NORMAL
 from tkinter.ttk import Combobox
 from typing import Dict, List
@@ -44,7 +44,7 @@ BUTTON_FONT = ("Arial", 12, NORMAL)
 FILE_NAME_FONT = ("Consolas", 10, NORMAL)
 TOOLTIP_FONT = ("Consolas", 8, NORMAL)
 
-class MainGui:
+class MainGUI:
     def __init__(self, root):
         """Main window for the app
 
@@ -73,7 +73,17 @@ class MainGui:
         # model selection
         self.label_select_model = Label(self.root, text="Select AI Model:", font=LABEL_FONT)
         self.label_select_model.pack()
-        self.dropdown_model_selector = Combobox(self.root, values=get_model_list())
+        model_list = get_model_list()
+        self.dropdown_selection_value = StringVar()
+        self.dropdown_model_selector = Combobox(self.root, values=model_list, textvariable=self.dropdown_selection_value)
+        reccomended = ['small.en', 'medium.en', 'small', 'medium.en', model_list[0] if len(model_list) else None]
+        for r in reccomended:
+            try:
+                idx = model_list.index(r)
+                self.dropdown_model_selector.current(idx)
+                break
+            except:
+                pass
         self.dropdown_model_selector.pack()
         model_help_text = """MODEL TYPES EXPLAINED
         ╔════════╦════════════╦══════════════╦══════════════╦══════════╦══════════╗
@@ -119,8 +129,10 @@ class MainGui:
             : @todo: pipe?
         """
         todo_list = [{'fp': e.get_file(), 'ns': e.get_speakers(), 'lang': e.get_lang()} for e in SelectedFileConfigElement.MANAGER]
+        selected_model = self.dropdown_selection_value.get()
+        print('Using model:', selected_model)
         for item in todo_list:
-            transcribe()
+            print(item)
 
 
 class SelectedFileConfigElement:
@@ -240,5 +252,5 @@ class ToolTip(object):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = MainGui(root=root)
+    app = MainGUI(root=root)
     root.mainloop()
