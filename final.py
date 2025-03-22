@@ -4,23 +4,16 @@ from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, Label, Spinbox, T
 from tkinter.font import BOLD, ITALIC, NORMAL
 from tkinter.ttk import Combobox
 from typing import Dict, List
+import whisper
 import subprocess
 
-def todo_get_window_realestate() -> str:
-    """
-    Returns:
-        str: window size geometry f"{PxX}x{PxY}"
-    """
-    return "800x430"
 
-def todo_get_model_list() -> List[str]:
+def get_model_list() -> List[str]:
     """
     Returns:
         List[str]: List of available model names
     """
-    ret = []
-    ret.append('small')
-    ret.append('medium_eng')
+    ret = list(whisper._MODELS.keys())
     return ret
 
 def todo_get_available_langs() -> Dict[str,str]:
@@ -38,7 +31,7 @@ def todo_get_ffmpeg_supported_file_types() -> List[str]:
     """
     ret = []
     # temp solution: add the known file types
-    ret += ['mp4', 'mp3', 'avi', 'mov', 'fla', 'ogg', 'webm', '3gp', '3g2', 'mj2', 'm4v', 'dv', 'avr', 'afc']
+    ret += ['mp4', 'mp3', 'avi', 'wav', 'mov', 'fla', 'ogg', 'webm', '3gp', '3g2', 'mj2', 'm4v', 'dv', 'avr', 'afc']
     # @TODO parse output from 'ffmpeg -demuxers -hide_banner'
     return ret
 
@@ -50,8 +43,9 @@ LABEL_FONT = ("Arial", 12, BOLD)
 BUTTON_FONT = ("Arial", 12, NORMAL)
 FILE_NAME_FONT = ("Consolas", 10, NORMAL)
 TOOLTIP_FONT = ("Consolas", 8, NORMAL)
+
 class MainGui:
-    def __init__(self, root, geometry):
+    def __init__(self, root):
         """Main window for the app
 
         Args:
@@ -59,7 +53,7 @@ class MainGui:
         """
         self.root = root
         self.root.title("Transcriber")
-        self.root.geometry(geometry)
+        self.root.geometry(self.get_initial_geometry())
 
         # file management - label
         self.label_file_management = Label(self.root, text="Files for transcription", font=LABEL_FONT)
@@ -79,7 +73,7 @@ class MainGui:
         # model selection
         self.label_select_model = Label(self.root, text="Select AI Model:", font=LABEL_FONT)
         self.label_select_model.pack()
-        self.dropdown_model_selector = Combobox(self.root, values=todo_get_model_list())
+        self.dropdown_model_selector = Combobox(self.root, values=get_model_list())
         self.dropdown_model_selector.pack()
         model_help_text = """MODEL TYPES EXPLAINED
         ╔════════╦════════════╦══════════════╦══════════════╦══════════╦══════════╗
@@ -94,7 +88,7 @@ class MainGui:
         ║  turbo ║    809 M   ║   N/A        ║    turbo     ║   ~6 GB  ║    ~8x   ║
         ╚════════╩════════════╩══════════════╩══════════════╩══════════╩══════════╝
 
-        Reccomended to use any of the '[size].en' models."""
+        Reccomended to use any of the '[size].en' models for english audio."""
         ToolTip(self.dropdown_model_selector, text=model_help_text)
         ToolTip(self.label_select_model, text=model_help_text)
         
@@ -103,6 +97,13 @@ class MainGui:
         self.button_start_transcribe.pack(pady=5)
         ToolTip(self.button_start_transcribe, text="Click here to start transcribing the files in the list!\nNote: If the transcription seems off, try running it again! Its possible the AI gets different results each time.")
     
+    def get_initial_geometry(self) -> str:
+        """
+        Returns:
+            str: window size geometry f"{PxX}x{PxY}"
+        """
+        return f"{max(self.root.winfo_screenwidth()/3, 800)}x{max(self.root.winfo_screenheight()/3,430)}"
+
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
         audio_video_types = todo_get_ffmpeg_supported_file_types()
@@ -238,7 +239,6 @@ class ToolTip(object):
 
 
 if __name__ == "__main__":
-    geometry = todo_get_window_realestate()
     root = tk.Tk()
-    app = MainGui(root=root, geometry=geometry)
+    app = MainGui(root=root)
     root.mainloop()
