@@ -1,11 +1,13 @@
 import os
 import tkinter as tk
-from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, Label, Spinbox, StringVar, Toplevel, filedialog, Frame
+from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame
 from tkinter.font import BOLD, ITALIC, NORMAL
 from tkinter.ttk import Combobox
+import tkinter.messagebox as tkMessageBox
 from typing import Dict, List
 import whisper
 import subprocess
+import traceback
 
 
 def get_model_list() -> List[str]:
@@ -47,19 +49,20 @@ TOOLTIP_FONT = ("Consolas", 8, NORMAL)
 class MainGUI:
     def __init__(self, root):
         """Main window for the app
-
+        
         Args:
             root (ttk): The root for this window.
         """
+        Tk.report_callback_exception = self.show_error
         self.root = root
         self.root.title("Transcriber")
         self.root.geometry(self.get_initial_geometry())
-
+        
         # file management - label
         self.label_file_management = Label(self.root, text="Files for transcription", font=LABEL_FONT)
         self.label_file_management.pack(padx=5, pady=3, side=TOP)
-        # ToolTip(self.label_file_management, text="Select the files to be transcribed!")
-
+        ToolTip(self.label_file_management, text="Select the files to be transcribed!\nNote that we will handle file conversions!")
+        
         # file management - list area
         self.frame_file_management_list = Frame(self.root)
         self.frame_file_management_list.pack(fill=BOTH, expand=True)
@@ -68,7 +71,7 @@ class MainGUI:
         # @TODO: should the first element be self.root or the self.frame_file_management_list?
         self.button_add_files = Button(self.frame_file_management_list, text="Select Files", command=self.select_new_files, font=BUTTON_FONT)
         self.button_add_files.pack(padx=5, pady=3)
-        ToolTip(self.button_add_files, text = "Clear current selection and select multiple files to be transcribed. (Opens file selection window).")
+        ToolTip(self.button_add_files, text = "Select multiple files to be transcribed. (Opens file selection window).")
         
         # model selection
         self.label_select_model = Label(self.root, text="Select AI Model:", font=LABEL_FONT)
@@ -113,7 +116,7 @@ class MainGUI:
             str: window size geometry f"{PxX}x{PxY}"
         """
         return f"{max(self.root.winfo_screenwidth()/3, 800)}x{max(self.root.winfo_screenheight()/3,430)}"
-
+    
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
         audio_video_types = todo_get_ffmpeg_supported_file_types()
@@ -130,10 +133,18 @@ class MainGUI:
         """
         todo_list = [{'fp': e.get_file(), 'ns': e.get_speakers(), 'lang': e.get_lang()} for e in SelectedFileConfigElement.MANAGER]
         selected_model = self.dropdown_selection_value.get()
+        if len(todo_list) == 0:
+            raise Exception("Please select a file to transcribe first!")
         print('Using model:', selected_model)
         for item in todo_list:
             print(item)
-
+    
+    def show_error(self, *args):
+        """Display the error to the user as a popup window"""
+        err = traceback.format_exception(*args)
+        print("\n".join(err))
+        tkMessageBox.showerror("Error!", f"{'\n'.join(args[1].args)}\n\n\n\nPlease see the console for the full error message!")
+    
 
 class SelectedFileConfigElement:
     MANAGER = []
@@ -160,21 +171,21 @@ class SelectedFileConfigElement:
         # self.label_frame.bind("<Button-3>", func=self.show_context_menu)
         # insert config controls:
         # insert spinbox
-        self.spinbox_num_speakers = Spinbox(self.row_frame, from_=min_speakers, to=max_speakers, justify=CENTER, width=5, )
+        self.spinbox_num_speakers = Spinbox(self.row_frame, from_=min_speakers, to=max_speakers, justify=CENTER, width=5, textvariable=IntVar(value=2))
         self.spinbox_num_speakers.pack(side=LEFT, padx=5, pady=0)
         ToolTip(self.spinbox_num_speakers, "Estimated number of speakers in this file.\nBetween 1 thru 99 inclusive.")
         # insert language selection
         self.lang_combo = Combobox(self.row_frame, values=languages, width=10)
         self.lang_combo.pack(side=LEFT, padx=5)
         self.lang_combo.set(languages[0])
-        ToolTip(self.spinbox_num_speakers, "The language to be transcribed.\nIf its not here then its not supported :c")
-
+        ToolTip(self.lang_combo, "The language to be transcribed.\nIf its not here then its not supported :c")
+        
         # insert delete button
         # 🗑️= \U0001F5D1; 🗴 1F5F4 🗶 1F5F6 🞨 1F7A8; 🞩 1F7A9; 🞪 1F7AA;🞫 1F7AB;🞬1F7AC;🞭1F7AD;🞮1F7AE;
-        self.delete_button = Button(self.row_frame, text="\U0001F5D1\U0001F7AE", command=self.delete_row, font=BUTTON_FONT)
+        self.delete_button = Button(self.row_frame, text="\U0001F5D1", command=self.delete_row, font=BUTTON_FONT)
         self.delete_button.pack(side=LEFT, padx=5)
         ToolTip(self.delete_button, "Remove this file from the list of files to be transcribed.")
-
+        
         SelectedFileConfigElement.MANAGER.append(self)
     
     def set_clipboard_to_filepath(self, event):
