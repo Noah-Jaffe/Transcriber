@@ -2,7 +2,6 @@ import batchalign as ba
 from tkinter import messagebox
 import os
 import sys
-import multiprocessing
 import json
 from types import FunctionType
 

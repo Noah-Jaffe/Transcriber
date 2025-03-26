@@ -1,4 +1,3 @@
-import multiprocessing.spawn
 import os
 from time import sleep, time
 import tkinter as tk
@@ -9,12 +8,10 @@ from tkinter.ttk import Combobox
 from types import FunctionType
 from typing import Dict, List
 import whisper
-import multiprocessing
 import traceback
 # import batchalign as ba
 import sys
 import subprocess
-import shellingham
 import pathlib
 import json
 # import logging
@@ -198,12 +195,14 @@ class MainGUI:
         spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
         for item in SelectedFileConfigElement.MANAGER:
             proc = subprocess.Popen(args=[sys.executable, f"{currloc}\\subproc.py", json.dumps({'input_file': item.get_file(), 'num_speakers': item.get_speakers(), 'lang': item.get_lang(), 'model_name':selected_model}, skipkeys=True, separators=(',', ':'))], cwd=os.getcwd(), start_new_session=True)
+            self.root.title("Transcriber - PLEASE DONT KILL ME - I AM WORKING! I PROMISE!")
             while proc.poll() == None:
                 try:
                     proc.wait()
                 except:
                     pass
-        
+        self.root.title("Transcriber")
+    
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
         err = traceback.format_exception(*args)
