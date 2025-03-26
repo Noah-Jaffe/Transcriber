@@ -2,16 +2,29 @@ import multiprocessing.spawn
 import os
 from time import sleep, time
 import tkinter as tk
-from tkinter import BOTH, CENTER, LEFT, SOLID, TOP, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame
+from tkinter import BOTH, CENTER, END, LEFT, SOLID, TOP, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox
 from tkinter.font import BOLD, ITALIC, NORMAL
+# from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Combobox
-import tkinter.messagebox as tkMessageBox
+from types import FunctionType
 from typing import Dict, List
 import whisper
 import multiprocessing
 import traceback
-import batchalign as ba
-
+# import batchalign as ba
+import sys
+import subprocess
+import shellingham
+import pathlib
+import json
+# import logging
+class COLOR_THEME:
+    IN_PROGRESS = "lightyellow"
+    LOADED = "aqua"
+    MAIN_WINDOW = "lightblue"
+    FAILED = "lightred"
+    COMPLETED = "green"
+    BUTTON = "pink"
 
 def get_model_list() -> List[str]:
     """
@@ -46,7 +59,24 @@ FILE_NAME_FONT = ("Consolas", 10, NORMAL)
 TOOLTIP_FONT = ("Consolas", 8, NORMAL)
 
 
-MODELS_DIRECTORY="./models" # where to save the models to
+# MODELS_DIRECTORY="./models" # where to save the models to
+# class CustomStdOut:
+#     def __init__(self, tkScrolledText):
+#         self.buffer = ""
+#         self.tkScrolledText = tkScrolledText
+#     def write(self, message):
+#         self.buffer += str(message)
+#     def flush(self):
+#         # Define what happens on flush (e.g., print to a file, network, etc.)
+#         self.tkScrolledText.config(state=NORMAL)
+#         self.tkScrolledText.insert(END, f"{self.buffer}\n")
+#         self.tkScrolledText.see(END)
+#         self.tkScrolledText.config(state="disabled")
+#         self.buffer = ""
+
+#     def __getattr__(self, attr):
+#         # Delegate other attributes/methods to the original stdout
+#         return getattr(sys.__stdout__, attr)
 
 class MainGUI:
     def __init__(self, root):
@@ -59,24 +89,25 @@ class MainGUI:
         self.root = root
         self.root.title("Transcriber")
         self.root.geometry(self.get_initial_geometry())
+        self.root.config(bg = COLOR_THEME.MAIN_WINDOW)
         
         # file management - label
-        self.label_file_management = Label(self.root, text="Files for transcription", font=LABEL_FONT)
+        self.label_file_management = Label(self.root, text="Files for transcription", font=LABEL_FONT, bg=COLOR_THEME.MAIN_WINDOW)
         self.label_file_management.pack(padx=5, pady=3, side=TOP)
         ToolTip(self.label_file_management, text="Select the files to be transcribed!\nNote that we will handle file conversions!")
         
         # file management - list area
-        self.frame_file_management_list = Frame(self.root)
+        self.frame_file_management_list = Frame(self.root, bg=COLOR_THEME.MAIN_WINDOW)
         self.frame_file_management_list.pack(fill=BOTH, expand=True)
         
         # file management - add files
         # @TODO: should the first element be self.root or the self.frame_file_management_list?
-        self.button_add_files = Button(self.frame_file_management_list, text="Select Files", command=self.select_new_files, font=BUTTON_FONT)
+        self.button_add_files = Button(self.frame_file_management_list, text="Select Files", command=self.select_new_files, font=BUTTON_FONT, bg=COLOR_THEME.BUTTON)
         self.button_add_files.pack(padx=5, pady=3)
         ToolTip(self.button_add_files, text = "Select multiple files to be transcribed. (Opens file selection window).")
         
         # model selection
-        self.label_select_model = Label(self.root, text="Select AI Model:", font=LABEL_FONT)
+        self.label_select_model = Label(self.root, text="Select AI Model:", font=LABEL_FONT, bg=COLOR_THEME.MAIN_WINDOW)
         self.label_select_model.pack()
         model_list = get_model_list()
         self.dropdown_selection_value = StringVar()
@@ -108,10 +139,35 @@ class MainGUI:
         ToolTip(self.label_select_model, text=model_help_text)
         
         # start activity button
-        self.button_start_transcribe = Button(self.root, text="Start Transcribe", command=self.todo_start_transcribe, font=BUTTON_FONT)
+        self.button_start_transcribe = Button(self.root, text="Start Transcribe", command=self.start_transcribe, font=BUTTON_FONT, bg=COLOR_THEME.BUTTON)
         self.button_start_transcribe.pack(pady=5)
         ToolTip(self.button_start_transcribe, text="Click here to start transcribing the files in the list!\nNote: If the transcription seems off, try running it again! Its possible the AI gets different results each time.")
-    
+        
+        # console monitor
+        # Create a ScrolledText widget inside the frame
+        # self.output_box = ScrolledText(self.root, wrap=tk.WORD, padx=5, pady=5, relief=SOLID, font=("consolas", 8, NORMAL), height=100)
+        # self.output_box.pack(fill=BOTH, expand=True)
+        # self.output_box.configure(state="disabled")
+        # self.output_handler = CustomStdOut(self.output_box)
+        # # Redirect stdout to the custom class
+        # sys.stdout = self.output_handler
+
+        # # Configure the logger
+        # self.logger = logging.getLogger('batchalign')
+        # multiprocessing.get_logger().addHandler(sys.stdout)
+        # self.logger.setLevel(logging.DEBUG)
+
+        # # Create a handler and set the output stream to the custom stdout
+        # self.handler = logging.StreamHandler(sys.stdout)
+        # self.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        # self.handler.setFormatter(self.formatter)
+        # self.logger.addHandler(self.handler)
+
+
+        # # Example usage
+        # self.logger.info("This is a test log message.")
+        # print("This will also be captured by the custom stdout.", flush = True)
+
     def get_initial_geometry(self) -> str:
         """
         Returns:
@@ -127,38 +183,32 @@ class MainGUI:
         for file in file_paths:
             SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(file), min_speakers=1, max_speakers=99, languages=langs)
     
-    def todo_start_transcribe(self):
+    def start_transcribe(self):
         """Starts the transcribe process in the background
-
+        
         Returns: 
             : @todo: pipe?
         """
         selected_model = self.dropdown_selection_value.get()
-        todo_list = [{'input_file': e.get_file(), 'num_speakers': e.get_speakers(), 'lang': e.get_lang(), 'model_name':selected_model} for e in SelectedFileConfigElement.MANAGER]
-        if len(todo_list) == 0:
+        if len(SelectedFileConfigElement.MANAGER) == 0:
             raise Exception("Please select a file to transcribe first!")
-        print('Using model:', selected_model)
-        subproc = []
-        for item in todo_list:
-            print(item)
-            p = multiprocessing.Process(target=transcribe_file, kwargs=item)
-            p.start()
-            subproc.append(p)
-        # wait for all procs to complete
-        while 1:
-            for proc in subproc:
-                proc.join(timeout=0)
-                if proc.is_alive():
-                    print(f"{time()} still working!")
-                sleep(10)
         
-    
+        #shell, exepath = shellingham.detect_shell()
+        currloc = pathlib.Path(__file__).parent.resolve()
+        spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
+        for item in SelectedFileConfigElement.MANAGER:
+            proc = subprocess.Popen(args=[sys.executable, f"{currloc}\\subproc.py", json.dumps({'input_file': item.get_file(), 'num_speakers': item.get_speakers(), 'lang': item.get_lang(), 'model_name':selected_model}, skipkeys=True, separators=(',', ':'))], cwd=os.getcwd(), start_new_session=True)
+            while proc.poll() == None:
+                try:
+                    proc.wait()
+                except:
+                    pass
+        
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
         err = traceback.format_exception(*args)
-        print("\n".join(err))
-        tkMessageBox.showerror("Error!", f"{'\n'.join(args[1].args)}\n\n\n\nPlease see the console for the full error message!")
-
+        print("\n".join(err), flush=True)
+        messagebox.showerror("Error!", f"{'\n'.join([str(a) for a in args[1].args])}\n\n\n\nPlease see the console for the full error message!")
 
 class SelectedFileConfigElement:
     MANAGER = []
@@ -199,9 +249,16 @@ class SelectedFileConfigElement:
         self.delete_button = Button(self.row_frame, text="\U0001F5D1", command=self.delete_row, font=BUTTON_FONT)
         self.delete_button.pack(side=LEFT, padx=5)
         ToolTip(self.delete_button, "Remove this file from the list of files to be transcribed.")
+        self.set_bg(COLOR_THEME.MAIN_WINDOW)
         
         SelectedFileConfigElement.MANAGER.append(self)
     
+    def set_bg(self, color):
+        self.row_frame.configure(bg=color)
+        self.label_frame.configure(bg=color)
+        self.file_label.configure(bg=color)
+        self.path_label.configure(bg=color)
+
     def set_clipboard_to_filepath(self, event):
         self.parent.clipboard_clear()
         self.parent.clipboard_append(self.filepath)
@@ -281,56 +338,63 @@ class ToolTip(object):
         self.hidetip()
 
 
-def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
-    # transcribe
-    whisper = ba.WhisperEngine(model=model_name, lang=lang)
-    diarization = ba.NemoSpeakerEngine(num_speakers=num_speakers)
-    disfluency = ba.DisfluencyReplacementEngine()
-    retrace = ba.NgramRetraceEngine()
-    # morphotag
-    morphosyntax = ba.StanzaEngine()
-    # align
-    utr = ba.WhisperUTREngine()
-    fa = ba.Wave2VecFAEngine()
+# def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
+#     # transcribe
+#     whisper = ba.WhisperEngine(model=model_name, lang=lang)
+#     diarization = ba.NemoSpeakerEngine(num_speakers=num_speakers)
+#     disfluency = ba.DisfluencyReplacementEngine()
+#     retrace = ba.NgramRetraceEngine()
+#     # morphotag
+#     morphosyntax = ba.StanzaEngine()
+#     # align
+#     utr = ba.WhisperUTREngine()
+#     fa = ba.Wave2VecFAEngine()
 
-    pipeline_activity = [action for action in [
-        whisper,
-        diarization if num_speakers > 1 else None,
-        disfluency,
-        retrace,
-        morphosyntax,
-        utr,
-        fa
-    ] if action]
+#     pipeline_activity = [action for action in [
+#         whisper,
+#         diarization if num_speakers > 1 else None,
+#         disfluency,
+#         retrace,
+#         morphosyntax,
+#         utr,
+#         fa
+#     ] if action]
     
-    # create a pipeline
-    nlp = ba.BatchalignPipeline(*pipeline_activity)
-    doc = ba.Document.new(media_path=input_file, lang=lang)
-    doc = nlp(doc)
-    chat = ba.CHATFile(doc=doc)
-    n = 0
-    output_file = f"{input_file}{'_'+str(n) if n > 0 else ''}.cha"
-    while 1:
-        output_file = f"{input_file}{'_'+str(n) if n > 0 else ''}.cha"
-        if not os.path.exists(output_file):
-            break
-        n += 1
-    chat.write(output_file)
-    print(f"Wrote to {output_file}")
-    return spawn_nonblocking_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.open(output_file))
+#     # create a pipeline
+#     nlp = ba.BatchalignPipeline(*pipeline_activity)
+#     doc = ba.Document.new(media_path=input_file, lang=lang)
+#     doc = nlp(doc)
+#     chat = ba.CHATFile(doc=doc)
+#     n = 0
+#     output_file = f"{input_file}{'_'+str(n) if n > 0 else ''}.cha"
+#     while 1:
+#         output_file = f"{input_file}{'_'+str(n) if n > 0 else ''}.cha"
+#         if not os.path.exists(output_file):
+#             break
+#         n += 1
+#     chat.write(output_file)
+#     print(f"Wrote to {output_file}", flush=True)
+#     return spawn_nonblocking_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.open(output_file))
 
-def spawn_nonblocking_popup_activity(title, message, yes=None, no=None):
-    def executable():
-        result = tkMessageBox.askyesno(title=title, message=message)
-        if result and yes and type(yes) == function:
-            yes()
-        elif not result and no and type(no) == function:
-            no()
+# def spawn_nonblocking_popup_activity(title, message, yes=None, no=None):
+#     def executable():
+#         result = messagebox.askyesno(title=title, message=message)
+#         if result and yes and type(yes) == function:
+#             yes()
+#         elif not result and no and type(no) == function:
+#             no()
     
-    p = multiprocessing.Process(target=executable)
-    p.start()
-    return p
+#     p = multiprocessing.Process(target=executable)
+#     p.start()
+#     return p
 
+def spawn_popup_activity(title, message, yes=None, no=None):
+    result = messagebox.askyesno(title=title, message=message)
+    if result and yes and type(yes) == FunctionType:
+        return yes()
+    elif not result and no and type(no) == FunctionType:
+        return no()
+    
 if __name__ == "__main__":
     root = tk.Tk()
     app = MainGUI(root=root)
