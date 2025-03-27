@@ -10,13 +10,22 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         num_speakers = int(num_speakers)
     except:
         num_speakers = 2
+    
     # transcribe
     whisper = ba.WhisperEngine(model=model_name, lang=lang)
+
+    # split by speaker
     diarization = ba.NemoSpeakerEngine(num_speakers=num_speakers)
+
+    # recognize pauses
     disfluency = ba.DisfluencyReplacementEngine()
+
+    # tbh uncertain
     retrace = ba.NgramRetraceEngine()
-    # morphotag
+    
+    # morphotag to get %mor %gra etc.
     morphosyntax = ba.StanzaEngine()
+
     # align
     utr = ba.WhisperUTREngine()
     fa = ba.Wave2VecFAEngine()
@@ -25,7 +34,7 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         whisper,
         diarization if num_speakers > 1 else None,
         disfluency,
-        retrace,
+        retrace,  # uncertain how this benifits us
         # morphosyntax,
         utr,
         fa
@@ -43,9 +52,8 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         if not os.path.exists(output_file):
             break
         n += 1
-    chat.write(output_file)
-    print(f"Wrote to {output_file}")
-    sys.stdout.flush()
+    chat.write(output_file, write_wor=False)
+    print(f"Wrote to {output_file}", flush=True)
     return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.startfile(output_file))
 
 def spawn_popup_activity(title, message, yes=None, no=None):

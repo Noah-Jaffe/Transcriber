@@ -15,6 +15,7 @@ import subprocess
 import pathlib
 import json
 # import logging
+
 class COLOR_THEME:
     IN_PROGRESS = "lightyellow"
     LOADED = "aqua"
@@ -28,7 +29,9 @@ def get_model_list() -> List[str]:
     Returns:
         List[str]: List of available model names
     """
+    ret = ["talkbank/CHATWhisper-en-large-v1", ]
     ret = list(whisper._MODELS.keys())
+    
     return ret
 
 def todo_get_available_langs() -> Dict[str,str]:
@@ -194,7 +197,22 @@ class MainGUI:
         currloc = pathlib.Path(__file__).parent.resolve()
         spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
         for item in SelectedFileConfigElement.MANAGER:
-            proc = subprocess.Popen(args=[sys.executable, f"{currloc}\\subproc.py", json.dumps({'input_file': item.get_file(), 'num_speakers': item.get_speakers(), 'lang': item.get_lang(), 'model_name':selected_model}, skipkeys=True, separators=(',', ':'))], cwd=os.getcwd(), start_new_session=True)
+            proc = subprocess.Popen(
+                args=[
+                    sys.executable, 
+                    f"{currloc}\\subproc.py", 
+                    json.dumps({
+                        'input_file': item.get_file(), 
+                        'num_speakers': item.get_speakers(), 
+                        'lang': item.get_lang(), 
+                        'model_name':selected_model
+                        },
+                        skipkeys=True, 
+                        separators=(',', ':'))
+                    ], 
+                    cwd=os.getcwd(), 
+                    start_new_session=True,
+                )
             self.root.title("Transcriber - PLEASE DONT KILL ME - I AM WORKING! I PROMISE!")
             while proc.poll() == None:
                 try:
