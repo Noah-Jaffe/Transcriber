@@ -4,14 +4,22 @@ import os
 import sys
 import json
 from types import FunctionType
+from huggingface_hub.hf_api import repo_exists as is_valid_model_id
+import pycountry
+from CustomAiEngine import CustomAiEngine
+
 
 def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     try:
         num_speakers = int(num_speakers)
     except:
         num_speakers = 2
-    
+    try:
+        lang = pycountry.languages.lookup(lang).alpha_3
+    except:
+        lang = 'eng'
     # transcribe
+    # whisper = CustomAiEngine(model=model_name, lang=lang)
     whisper = ba.WhisperEngine(model=model_name, lang=lang)
 
     # split by speaker
