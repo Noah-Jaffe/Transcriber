@@ -1,19 +1,19 @@
 {
-  "selectedModel": "talkbank/CHATWhisper-en",
+  "selectedModel": "openai/whisper-base.en",
   "modelCache": [
     "talkbank/CHATWhisper-en",
-    "openai/whisper-small.en",
     "openai/whisper-base.en",
     "openai/whisper-tiny.en",
-    "openai/whisper-large-v3-turbo",
+    "openai/whisper-small.en",
     "openai/whisper-medium.en",
-    "openai/whisper-tiny",
     "openai/whisper-base",
+    "openai/whisper-tiny",
     "openai/whisper-small",
     "openai/whisper-medium",
     "openai/whisper-large",
     "openai/whisper-large-v2",
-    "openai/whisper-large-v3"
+    "openai/whisper-large-v3",
+    "openai/whisper-large-v3-turbo"
   ],
   "fileCache": []
 }

@@ -1,10 +1,5 @@
 [
-    {"author": "talkbank", "limit": 10},
-    {"author": "openai", "limit": 1000},
-    {"author": "einargizz", "search":"whisper_samromur_children", "limit":5},
-    {"author": "deepseek-ai", "limit": 1000},
-    {"author": "microsoft", "limit": 1000},
-    {"search": "child", "limit":1000},
-    {"filter": "automatic-speech-recognition,whisper", "sort":"downloads", "limit": 10},
-    {"filter": "automatic-speech-recognition,whisper", "sort":"likes", "limit": 10}
+    {"author": "talkbank", "limit": 10, "filter": "automatic-speech-recognition"},
+    {"author": "openai", "limit": 1000, "filter": "automatic-speech-recognition"},
+    {"search": "whisper child", "limit": 10, "filter": "automatic-speech-recognition", "sort": "downloads"}
 ]
