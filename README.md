@@ -13,11 +13,19 @@
 # How to use:
 1. install requirements
     - `pip install -r requirements.txt`
-    - Follow the guide here if you have a CUDA compatible GPU: https://docs.nvidia.com/cuda/cuda-quick-start-guide/
-        - You may need to `pip uninstall torch torchaudio torchvision` before doing this step.
+    - If you have a CUDA compatible GPU: 
+        - [Install CUDA](https://docs.nvidia.com/cuda/cuda-quick-start-guide/)
+        - You may need to `pip uninstall torch torchaudio torchvision` before doing this next step.
+        - [Reinstall torch torchaudio and torchvision with your appropriate build](https://pytorch.org/get-started/locally/)
+    - Otherwise if you dont have a CUDA compatible GPU or dont know what that means then run the next line:
+        - `pip install torch torchaudio torchvision`
+1. If on windows: 
+    - Enable symbolic links on your machine
+    - Open the Local group policy editor and add your account user to the following:
+    ![Follow these steps](docs\readme_add_symlinks.png)
 1. Put your [Huggingface token](https://huggingface.co/docs/hub/en/security-tokens) in a file named `.hftoken`. (Note that it does not need any special permissions, you can deselect all of the options.)
 1. Start application.
-    - `python ./transcribe.py`
+    - `python ./main.py`
 1. Select files (button) to be transcribed.
     - Set the number of speakers in the number box.
     - Set the language (if not english).
