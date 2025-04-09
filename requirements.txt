@@ -35,6 +35,7 @@ einops==0.8.1
 emoji==2.14.1
 executing==2.2.0
 eyed3==0.9.7
+ffmpeg-python==0.2.0
 fiddle==0.3.0
 filelock==3.18.0
 filetype==1.2.0
