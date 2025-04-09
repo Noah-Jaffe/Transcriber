@@ -1,0 +1,5 @@
+[
+    {"author": "talkbank", "limit": 10, "filter": "automatic-speech-recognition"},
+    {"author": "openai", "limit": 1000, "filter": "automatic-speech-recognition"},
+    {"search": "whisper child", "limit": 10, "filter": "automatic-speech-recognition", "sort": "downloads"}
+]
