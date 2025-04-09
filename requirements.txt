@@ -35,7 +35,6 @@ einops==0.8.1
 emoji==2.14.1
 executing==2.2.0
 eyed3==0.9.7
-ffmpeg-python==0.2.0
 fiddle==0.3.0
 filelock==3.18.0
 filetype==1.2.0
@@ -133,6 +132,7 @@ Pygments==2.19.1
 pyloudnorm==0.1.1
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
+python-ffmpeg==2.0.12
 pytorch-lightning==2.5.1
 pytz==2025.2
 PyYAML==6.0.2
