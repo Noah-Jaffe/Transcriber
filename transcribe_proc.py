@@ -62,7 +62,12 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         n += 1
     chat.write(output_file, write_wor=False)
     print(f"Wrote to {output_file}", flush=True)
-    return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.startfile(output_file))
+    try:
+        os.startfile(output_file)
+    except:
+        pass
+    # this is process blocking so we dont do it for now
+    # return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.startfile(output_file))
 
 def spawn_popup_activity(title, message, yes=None, no=None):
     result = messagebox.askyesno(title=title, message=message)

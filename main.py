@@ -1,4 +1,5 @@
 import os
+import re
 from time import sleep, time
 import tkinter as tk
 from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
