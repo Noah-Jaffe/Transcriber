@@ -1,14 +1,14 @@
 import os
 from time import sleep, time
 import tkinter as tk
-from tkinter import BOTH, CENTER, E, END, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
+from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
 from tkinter.font import BOLD, ITALIC, NORMAL
 # from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Combobox
 from types import FunctionType
-from typing import Dict, List
-import whisper
+from typing import List
 import traceback
+from ffmpeg import FFmpeg
 import pycountry
 import requests
 # import batchalign as ba
@@ -38,8 +38,11 @@ HF_TOKEN_FILENAME = ".hftoken"
 MODELS_CFG_FILENAME = "cfg/models.json"
 CACHE_FILENAME = "cfg/cache.json"
 MASCOT_FILENAME = "cfg/mascot.png"
-TRANSCRIBE_SUBPROC_FILENAME = "subproc.py"
+TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
 
+
+# @todo if they ask for it, give an in window output text box to display
+# the output instead of printing to the shell
 # MODELS_DIRECTORY="./models" # where to save the models to
 # class CustomStdOut:
 #     def __init__(self, tkScrolledText):
@@ -198,7 +201,7 @@ See the README.md file for more info!"""
     
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
-        audio_video_types = todo_get_ffmpeg_supported_file_types()
+        audio_video_types = get_audio_file_types() + get_video_file_types()
         file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", ";".join([f"*.{x}" for x in audio_video_types])), ('All Files', "*.*")])
         langs = list(get_available_langs())
         for file in file_paths:
@@ -230,6 +233,12 @@ See the README.md file for more info!"""
                 return
         
         for item in SelectedFileConfigElement.MANAGER:
+            # needs conversion?
+            if not (item.get_file().split('.')[-1] in get_audio_file_types()):
+                # looks like it probably needs conversion
+                print(f"Converting {item.get_file()} to mp3 type so that it can be transcribed!")
+                item.filepath = convert_file_to_type(item.get_file(), '.mp3')
+                print(f"Convertion completed! Audio file can be found {item.get_file()}")
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
@@ -593,17 +602,44 @@ def validate_language(inp):
         spawn_popup_activity("Language Error!", f"Unable to determine language: '{inp}'.\nValid language codes are:\nThe 2 letter code such as 'en', 'es', 'zh', etc.\nThe 3 letter code such as 'eng', 'spa', 'zho'\nThe full name such as 'english', 'spanish', 'chinese'.\nPress any button to continue.")
     return None
 
-def todo_get_ffmpeg_supported_file_types() -> List[str]:
-    """
-    Returns:
-        List[str]: list of supported file types
-    """
-    ret = []
-    # temp solution: add the known file types
-    ret += ['mp4', 'mp3', 'avi', 'wav', 'mov', 'fla', 'ogg', 'webm', '3gp', '3g2', 'mj2', 'm4v', 'dv', 'avr', 'afc']
-    # @TODO parse output from 'ffmpeg -demuxers -hide_banner'
-    return ret
+def get_audio_file_types() -> List[str]:
+    return [
+        "3gp", "aa", "aac", "aax", "act", "aiff", "alac", "amr", 
+        "ape", "au", "awb", "dss", "dvf", "flac", "gsm", "iklax", 
+        "ivs", "m4a", "m4b", "m4p", "mmf", "movpkg", "mp3", "mpc", 
+        "msv", "nmf", "ogg", "oga", "mogg", "opus", "ra", "rm", 
+        "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", 
+        "wv", "webm", "8svx", "cda"
+    ]
 
+def get_video_file_types() -> List[str]:
+    return [
+        "webm", "mkv", "flv", "flv", "vob", "ogv", "ogg", "drc",
+        "gifv", "mng", "avi", "MTS", "M2TS", "TS", "mov", "qt", 
+        "wmv", "yuv", "rm", "rmvb", "viv", "asf", "amv", "mp4", 
+        "m4p (with DRM)", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv",
+        "mpg", "mpeg", "m2v", "m4v", "svi", "3gp", "3g2", "mxf", 
+        "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b"
+    ]
+
+def convert_file_to_type(inp_file: str, totype: str):
+    """Converts given file to the file type using ffmpeg.
+
+    Args:
+        inp_file (str): the input file path
+        totype (str): the output file type extention
+
+    Returns:
+        str: the output file path
+    """
+    name, ext = os.path.splitext(inp_file)
+    out_name = f"{name}{'' if str(totype).startswith('.') else '.'}{totype}"
+    if os.path.exists(out_name):
+        # assume it has already converted the file
+        print(f"Using cached version of {inp_file}!")
+        return out_name
+    FFmpeg().input(inp_file).output(out_name).execute()
+    return out_name
 
 if __name__ == "__main__":
     root = tk.Tk()

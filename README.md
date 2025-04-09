@@ -17,6 +17,7 @@
         - [Install CUDA](https://docs.nvidia.com/cuda/cuda-quick-start-guide/)
         - You may need to `pip uninstall torch torchaudio torchvision` before doing this next step.
         - [Reinstall torch torchaudio and torchvision with your appropriate build](https://pytorch.org/get-started/locally/)
+            - e.g. if you have cuda 12.6 you would run: `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`
     - Otherwise if you dont have a CUDA compatible GPU or dont know what that means then run the next line:
         - `pip install torch torchaudio torchvision`
 1. If on windows: 
