@@ -1,5 +1,4 @@
 import os
-import re
 from time import sleep, time
 import tkinter as tk
 from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
@@ -19,6 +18,8 @@ import pathlib
 import json
 from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 from PIL import Image, ImageTk
+import psutil
+from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
 
 # import logging
 
@@ -246,6 +247,24 @@ See the README.md file for more info!"""
                 print(f"Converting {item.get_file()} to mp3 type so that it can be transcribed!")
                 item.filepath = convert_file_to_type(item.get_file(), ntype)
                 print(f"Convertion completed! Audio file can be found {item.get_file()}")
+            
+            # priority_levels = [
+            #     psutil.NORMAL_PRIORITY_CLASS, # normal,
+            #     psutil.ABOVE_NORMAL_PRIORITY_CLASS, # above normal
+            #     psutil.ABOVE_NORMAL_PRIORITY_CLASS, # above normal
+            #     psutil.HIGH_PRIORITY_CLASS, # high priority
+            # ]
+            # priority_points = 0
+            # curr_state = psutil.virtual_memory()
+            # if (curr_state.total/(2**30) > 16):
+            #     # 16gb+ ram
+            #     priority_points += 1
+            # if (is_cuda_available()):
+            #     # has cuda
+            #     priority_points += 1
+            #     if (get_cuda_mem_info()[1]/(2**30) > 10):
+            #         # has big cuda
+            #         priority_points += 1
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
@@ -262,6 +281,7 @@ See the README.md file for more info!"""
                     cwd=os.getcwd(),
                     start_new_session=True
                 )
+            # psutil.Process(proc.pid).nice(priority_levels[priority_points])
             self.root.title("Transcriber - PLEASE DONT KILL ME - I AM WORKING! I PROMISE!")
             while proc.poll() == None:
                 try:
@@ -274,6 +294,7 @@ See the README.md file for more info!"""
         except:
             pass
         self.root.title("Transcriber")
+        # spawn_popup_activity("Transcriber", "Completed transcribing the files!")
     
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
