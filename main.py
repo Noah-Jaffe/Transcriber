@@ -1,5 +1,4 @@
 import os
-import re
 from time import sleep, time
 import tkinter as tk
 from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
@@ -9,7 +8,7 @@ from tkinter.ttk import Combobox
 from types import FunctionType
 from typing import List
 import traceback
-from ffmpeg import FFmpeg
+import ffmpeg
 import pycountry
 import requests
 # import batchalign as ba
@@ -19,6 +18,9 @@ import pathlib
 import json
 from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 from PIL import Image, ImageTk
+import psutil
+from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
+
 # import logging
 
 # CONSTANTS
@@ -40,6 +42,10 @@ MODELS_CFG_FILENAME = "cfg/models.json"
 CACHE_FILENAME = "cfg/cache.json"
 MASCOT_FILENAME = "cfg/mascot.png"
 TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
+FFMPEG_EXE_DIR = "tools"
+
+# add ffmpeg tools to path so that downstream modules can use it
+sys.path.append(FFMPEG_EXE_DIR)
 
 
 # @todo if they ask for it, give an in window output text box to display
@@ -237,9 +243,28 @@ See the README.md file for more info!"""
             # needs conversion?
             if not (item.get_file().split('.')[-1] in get_audio_file_types()):
                 # looks like it probably needs conversion
+                ntype = ".mp3"
                 print(f"Converting {item.get_file()} to mp3 type so that it can be transcribed!")
-                item.filepath = convert_file_to_type(item.get_file(), '.mp3')
+                item.filepath = convert_file_to_type(item.get_file(), ntype)
                 print(f"Convertion completed! Audio file can be found {item.get_file()}")
+            
+            # priority_levels = [
+            #     psutil.NORMAL_PRIORITY_CLASS, # normal,
+            #     psutil.ABOVE_NORMAL_PRIORITY_CLASS, # above normal
+            #     psutil.ABOVE_NORMAL_PRIORITY_CLASS, # above normal
+            #     psutil.HIGH_PRIORITY_CLASS, # high priority
+            # ]
+            # priority_points = 0
+            # curr_state = psutil.virtual_memory()
+            # if (curr_state.total/(2**30) > 16):
+            #     # 16gb+ ram
+            #     priority_points += 1
+            # if (is_cuda_available()):
+            #     # has cuda
+            #     priority_points += 1
+            #     if (get_cuda_mem_info()[1]/(2**30) > 10):
+            #         # has big cuda
+            #         priority_points += 1
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
@@ -256,6 +281,7 @@ See the README.md file for more info!"""
                     cwd=os.getcwd(),
                     start_new_session=True
                 )
+            # psutil.Process(proc.pid).nice(priority_levels[priority_points])
             self.root.title("Transcriber - PLEASE DONT KILL ME - I AM WORKING! I PROMISE!")
             while proc.poll() == None:
                 try:
@@ -268,6 +294,7 @@ See the README.md file for more info!"""
         except:
             pass
         self.root.title("Transcriber")
+        # spawn_popup_activity("Transcriber", "Completed transcribing the files!")
     
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
@@ -639,7 +666,14 @@ def convert_file_to_type(inp_file: str, totype: str):
         # assume it has already converted the file
         print(f"Using cached version of {inp_file}!")
         return out_name
-    FFmpeg().input(inp_file).output(out_name).execute()
+    try:
+        out, err = (ffmpeg
+            .input(inp_file)
+            .output(out_name)#, format='s16le', acodec='pcm_s16le', ac=1, ar='16k')
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+    except ffmpeg.Error as e:
+        print(e.stderr, file=sys.stderr)
     return out_name
 
 if __name__ == "__main__":

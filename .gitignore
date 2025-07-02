@@ -5,3 +5,5 @@ models
 *.mkv
 *.mp3
 *.xlsx
+
+__pycache__

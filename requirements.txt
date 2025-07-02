@@ -178,7 +178,7 @@ toolz==1.0.0
 torchmetrics==1.7.0
 tqdm==4.67.1
 traitlets==5.14.3
-transformers==4.48.3
+transformers==4.51.1
 typeguard==4.4.2
 typer==0.15.2
 typing-inspection==0.4.0
