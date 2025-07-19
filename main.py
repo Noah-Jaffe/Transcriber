@@ -1,7 +1,8 @@
 import os
 from time import sleep, time
 import tkinter as tk
-from tkinter.ttk import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font, Combobox, Spinbox 
+from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, IntVar, Label, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font, Button
+from tkinter.ttk import Combobox, Spinbox
 from tkinter.font import BOLD, ITALIC, NORMAL
 # from tkinter.scrolledtext import ScrolledText
 from types import FunctionType
@@ -306,7 +307,7 @@ See the README.md file for more info!"""
         """Display the error to the user as a popup window"""
         err = traceback.format_exception(*args)
         print("\n".join(err), flush=True)
-        messagebox.showerror("Error!", f"{'\n'.join([str(a) for a in args[1].args])}\n\n\n\nPlease see the console for the full error message!")
+        messagebox.showerror("Error!", '\n'.join([str(a) for a in args[1].args]) + "\n\n\n\nPlease see the console for the full error message!")
     
     def get_model_list(self) -> List[str]:
         """
@@ -349,8 +350,8 @@ See the README.md file for more info!"""
                     break
             if c == False:
                 cache["fileCache"] = cache.get("fileCache",[]) + [{"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}]
-        if os.path.pardir(CACHE_FILENAME) and not os.path.exists(os.path.dirname(CACHE_FILENAME)):
-            os.mkdir(os.path.pardir(CACHE_FILENAME))
+        if os.path.dirname(CACHE_FILENAME) and not os.path.exists(os.path.dirname(CACHE_FILENAME)):
+            os.mkdir(os.path.dirname(CACHE_FILENAME))
         with open(CACHE_FILENAME, 'w', encoding='utf-8') as f:
             json.dump(cache, indent=2, fp=f)
     
@@ -377,7 +378,7 @@ See the README.md file for more info!"""
         screen_height = self.root.winfo_screenheight()
         img = None
         # Load and scale the image
-        if os.path.isfile(MASCOT_FILE):
+        if os.path.isfile(MASCOT_FILENAME):
             img = Image.open(MASCOT_FILENAME)
         else:
             img = Image.new('RGBA', (100, 100), (255, 0, 0, 0))
@@ -483,7 +484,11 @@ class SelectedFileConfigElement:
         return self.filepath
     
     def get_speakers(self):
-        return int(self.spinbox_num_speakers.get())
+        v = self.spinbox_num_speakers.get()
+        if not v:
+            print(f'no num speakers given for {self.filepath}, defaulting to 1')
+            v = '1'  
+        return int(self.spinbox_num_speakers.get() or '1')
     
     def delete_row(self):
         self.row_frame.destroy()
