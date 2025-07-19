@@ -24,14 +24,15 @@ from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cu
 
 # CONSTANTS/config
 class COLOR_THEME:
-    IN_PROGRESS = "lightyellow"
-    LOADED = "aqua"
-    MAIN_WINDOW = "lightblue"
-    FAILED = "lightred"
-    COMPLETED = "green"
-    BUTTON = "pink"
+    IN_PROGRESS = "#FFFFE0"   # lightyellow
+    LOADED = "#00FFFF"        # aqua
+    MAIN_WINDOW = "#ADD8E6"   # lightblue
+    FAILED = "#E04545"        # lightred
+    COMPLETED = "#008000"     # green
+    BUTTON = "#FFC0CB"        # pink
 
-DDEFAUL_FONT = "Helvetica" if sys.platform == "darwin" else "Arial"
+
+DEFAULT_FONT = "Helvetica" if sys.platform == "darwin" else "Arial"
 LABEL_FONT = (DEFAULT_FONT, 12, BOLD)
 BUTTON_FONT = (DEFAULT_FONT, 12, NORMAL)
 # Font fallback for macOS
@@ -208,7 +209,7 @@ See the README.md file for more info!"""
         Returns:
             str: window size geometry f"{PxX}x{PxY}"
         """
-        return f"{max(self.root.winfo_screenwidth()/3, 800)}x{max(self.root.winfo_screenheight()/3,430)}"
+        return f"{max(self.root.winfo_screenwidth()//3, 800)}x{max(self.root.winfo_screenheight()//3,430)}"
     
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
@@ -347,7 +348,7 @@ See the README.md file for more info!"""
                     break
             if c == False:
                 cache["fileCache"] = cache.get("fileCache",[]) + [{"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}]
-        if not os.path.exists(os.path.dirname(CACHE_FILENAME)):
+        if os.path.pardir(CACHE_FILENAME) and not os.path.exists(os.path.dirname(CACHE_FILENAME)):
             os.mkdir(os.path.pardir(CACHE_FILENAME))
         with open(CACHE_FILENAME, 'w', encoding='utf-8') as f:
             json.dump(cache, indent=2, fp=f)
@@ -358,7 +359,6 @@ See the README.md file for more info!"""
         popup.title("AY, IM WORKIN ERE")
         popup.overrideredirect(True)  # Remove window decorations
         # Set window transparency attributes (Windows only)
-        popup.wm_attributes("-transparentcolor", "#f0f0f0")
         if sys.platform.startswith("win"):
           popup.wm_attributes("-transparentcolor", "#f0f0f0")
         elif sys.platform == "darwin":
@@ -372,9 +372,12 @@ See the README.md file for more info!"""
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        
+        img = None
         # Load and scale the image
-        img = Image.open(MASCOT_FILENAME)
+        if os.path.isfile(MASCOT_FILE):
+            img = Image.open(MASCOT_FILENAME)
+        else:
+            img = Image.new('RGBA', (100, 100), (255, 0, 0, 0))
         img_ratio = img.width / img.height
         max_width, max_height = screen_width - 100, screen_height - 100  # Add padding
         if img.width > max_width or img.height > max_height:
