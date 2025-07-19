@@ -10,6 +10,9 @@
 - internet (for model download, on the first time you use it)
 - if on MacOS/Linux, install ffmpeg to be made available by the command line
     - MacOS: `brew install ffmpeg`
+- Python tkinter needs to be installed
+    - Windows: use the default Python installer and select the tk option
+    - MacOS: `brew install python-tk`
 
 
 ---
