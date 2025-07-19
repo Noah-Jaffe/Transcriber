@@ -1,6 +1,7 @@
 import batchalign as ba
 from tkinter import messagebox
 import os
+import subprocess
 import sys
 import json
 from types import FunctionType
@@ -73,12 +74,23 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     
     print(f"Wrote to {output_file}", flush=True)
     # uncomment this next block if you want the output file to automatically open
+    # return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: open_file(output_file))
+
+def open_file(file_path):
     # this process is blocking so we dont do it for now so that we can run through the rest of the files given by the UI component
-    # try:
-    #     os.startfile(output_file)
-    # except:
-    #     pass
-    # return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: os.startfile(output_file))
+    try:
+        # win & mac
+        subprocess.call(["open", file_path])
+    except:
+        try:
+            # Linux
+            subprocess.call(["xdg-open", file_path])
+        except:
+            try:
+                # win
+                os.startfile(file_path)
+            except:
+                print(f"READY TO OPEN FILE: {file_path}", flush=True)
 
 def spawn_popup_activity(title, message, yes=None, no=None):
     result = messagebox.askyesno(title=title, message=message)
