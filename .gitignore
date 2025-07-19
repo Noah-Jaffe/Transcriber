@@ -7,3 +7,7 @@ models
 *.xlsx
 
 __pycache__
+.DS_STORE
+
+
+.hftoken
