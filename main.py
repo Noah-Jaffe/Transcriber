@@ -1,10 +1,9 @@
 import os
 from time import sleep, time
 import tkinter as tk
-from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
+from tkinter.ttk import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font, Combobox, Spinbox 
 from tkinter.font import BOLD, ITALIC, NORMAL
 # from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Combobox
 from types import FunctionType
 from typing import List
 import traceback
@@ -23,7 +22,7 @@ from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cu
 
 # import logging
 
-# CONSTANTS
+# CONSTANTS/config
 class COLOR_THEME:
     IN_PROGRESS = "lightyellow"
     LOADED = "aqua"
@@ -32,19 +31,24 @@ class COLOR_THEME:
     COMPLETED = "green"
     BUTTON = "pink"
 
-LABEL_FONT = ("Arial", 12, BOLD)
-BUTTON_FONT = ("Arial", 12, NORMAL)
-FILE_NAME_FONT = ("Consolas", 10, NORMAL)
-TOOLTIP_FONT = ("Consolas", 8, NORMAL)
+DDEFAUL_FONT = "Helvetica" if sys.platform == "darwin" else "Arial"
+LABEL_FONT = (DEFAULT_FONT, 12, BOLD)
+BUTTON_FONT = (DEFAULT_FONT, 12, NORMAL)
+# Font fallback for macOS
+MONO_FONT = "Menlo" if sys.platform == "darwin" else "Consolas"
 
+FILE_NAME_FONT = (MONO_FONT, 10, NORMAL)
+TOOLTIP_FONT = (MONO_FONT, 8, NORMAL)
+
+# functional config values
 HF_TOKEN_FILENAME = ".hftoken"
 MODELS_CFG_FILENAME = "cfg/models.json"
 CACHE_FILENAME = "cfg/cache.json"
 MASCOT_FILENAME = "cfg/mascot.png"
 TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
-FFMPEG_EXE_DIR = "tools"
+FFMPEG_EXE_DIR = os.path.abspath("tools")
 
-# add ffmpeg tools to path so that downstream modules can use it
+# add ffmpeg tools to path so that downstream modules can use it (specifically for windows)
 sys.path.append(FFMPEG_EXE_DIR)
 
 
@@ -169,7 +173,7 @@ See the README.md file for more info!"""
         
         # console monitor
         # Create a ScrolledText widget inside the frame
-        # self.output_box = ScrolledText(self.root, wrap=tk.WORD, padx=5, pady=5, relief=SOLID, font=("consolas", 8, NORMAL), height=100)
+        # self.output_box = ScrolledText(self.root, wrap=tk.WORD, padx=5, pady=5, relief=SOLID, font=(MONO_FONT, 8, NORMAL), height=100)
         # self.output_box.pack(fill=BOTH, expand=True)
         # self.output_box.configure(state="disabled")
         # self.output_handler = CustomStdOut(self.output_box)
@@ -209,7 +213,7 @@ See the README.md file for more info!"""
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
         audio_video_types = get_audio_file_types() + get_video_file_types()
-        file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", ";".join([f"*.{x}" for x in audio_video_types])), ('All Files', "*.*")])
+        file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", " ".join([f"*.{x}" for x in audio_video_types])), ('All Files', " ".join(get_any_file_type()))])
         langs = list(get_available_langs())
         for file in file_paths:
             SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(file), min_speakers=1, max_speakers=99, languages=langs)
@@ -268,7 +272,7 @@ See the README.md file for more info!"""
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
-                    f"{currloc}\\{TRANSCRIBE_SUBPROC_FILENAME}",
+                    os.path.join(currloc, TRANSCRIBE_SUBPROC_FILENAME),
                     json.dumps({
                         'input_file': item.get_file(), 
                         'num_speakers': item.get_speakers(), 
@@ -355,6 +359,15 @@ See the README.md file for more info!"""
         popup.overrideredirect(True)  # Remove window decorations
         # Set window transparency attributes (Windows only)
         popup.wm_attributes("-transparentcolor", "#f0f0f0")
+        if sys.platform.startswith("win"):
+          popup.wm_attributes("-transparentcolor", "#f0f0f0")
+        elif sys.platform == "darwin":
+        	# On macOS Big Sur+ you can get a similar effect
+          popup.attributes("-transparent", True)
+        else:
+          # other platforms – do nothing special
+          pass
+
         
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
@@ -382,7 +395,7 @@ See the README.md file for more info!"""
         popup.image = img_tk  # Keep a reference
         
         # Overlay text
-        text_label = tk.Label(popup, text=message, font=("Arial", 16, "bold"),
+        text_label = tk.Label(popup, text=message, font=(DEFAULT_FONT, 16, "bold"),
                           fg="black", bg="white", wraplength=img.width - 20)
         text_label.place(anchor=CENTER, y=(img.height // 3) * 2, x = img.width//2, width=img.width - 20)
         
@@ -409,8 +422,8 @@ class SelectedFileConfigElement:
         self.label_frame = Frame(self.row_frame, padx=0, pady=0)
         self.label_frame.pack(side=LEFT, expand=True, anchor="w", padx=0, pady=0)
         # insert file labels
-        self.path_label = Label(self.label_frame, text=f"{parentDir}{os.path.sep}", font=("consolas", 8, ITALIC), anchor="w", justify=LEFT)
-        self.file_label = Label(self.label_frame, text=filename, width=35, font=("consolas", 10, BOLD), anchor="w", justify=LEFT, )
+        self.path_label = Label(self.label_frame, text=f"{parentDir}{os.path.sep}", font=(MONO_FONT, 8, ITALIC), anchor="w", justify=LEFT)
+        self.file_label = Label(self.label_frame, text=filename, width=35, font=(MONO_FONT, 10, BOLD), anchor="w", justify=LEFT, )
         self.path_label.grid(row=0, column=0)
         self.file_label.grid(row=1, column=0)
         ToolTip(self.label_frame, f"File path to be transcribed:\n\t{self.filepath}")
@@ -629,6 +642,9 @@ def validate_language(inp):
     except LookupError as e:
         spawn_popup_activity("Language Error!", f"Unable to determine language: '{inp}'.\nValid language codes are:\nThe 2 letter code such as 'en', 'es', 'zh', etc.\nThe 3 letter code such as 'eng', 'spa', 'zho'\nThe full name such as 'english', 'spanish', 'chinese'.\nPress any button to continue.")
     return None
+
+def get_any_file_type() -> List[str]:
+	return ["*", ".*", "*.*"]
 
 def get_audio_file_types() -> List[str]:
     return [
