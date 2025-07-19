@@ -116,7 +116,7 @@ class MainGUI:
                 model_list.append(model)
         
         self.dropdown_selection_value = StringVar()
-        self.dropdown_model_selector = Combobox(self.frame_model_selection_line, values=model_list, textvariable=self.dropdown_selection_value)
+        self.dropdown_model_selector = Combobox(self.frame_model_selection_line, values=model_list, textvariable=self.dropdown_selection_value, width=35)
         
         reccomended = [self.cache.get('selectedModel','openai/whisper-small.en'),'openai/whisper-small.en', 'openai/whisper-medium.en', 'openai/whisper-small', 'openai/whisper-medium.en', model_list[0] if len(model_list) else None]
         for r in reccomended:
@@ -291,6 +291,7 @@ See the README.md file for more info!"""
             while proc.poll() == None:
                 try:
                     self.root.update_idletasks()
+                    sleep(0.1)
                     #proc.wait(timeout=1)
                 except:
                     pass
@@ -364,6 +365,8 @@ See the README.md file for more info!"""
         elif sys.platform == "darwin":
         	# On macOS Big Sur+ you can get a similar effect
           popup.attributes("-transparent", True)
+          popup.configure(background='systemTransparent')
+
         else:
           # other platforms – do nothing special
           pass
@@ -464,8 +467,11 @@ class SelectedFileConfigElement:
         self.path_label.configure(bg=color)
     
     def set_clipboard_to_filepath(self, event):
-        self.parent.clipboard_clear()
-        self.parent.clipboard_append(self.filepath)
+        try:
+            self.parent.clipboard_clear()
+            self.parent.clipboard_append(self.filepath)
+        except:
+            print(f"Failed to set clipboard to:\n{self.filepath}")
     
     def get_pointer(self):
         return self.row_frame
