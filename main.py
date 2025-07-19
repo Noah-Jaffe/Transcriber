@@ -626,8 +626,16 @@ def search_for_hf_model(query):
             return None
 
 def open_hf_search():
-    os.startfile("https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers")
-    spawn_popup_activity("Search", "Use the huggingface search to find the model ID or model name to use. Click yes or no to continue.")
+    hf_search_url = "https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers"
+    try:
+        import webbrowser
+        webbrowser.open(hf_search_url)
+    except:
+        try:
+            os.startfile(hf_search_url)
+        except:
+            print(f"Visit the following URL to find additional models from huggingface:\n{hf_search_url}")
+    spawn_popup_activity("Search", f"Use the huggingface search to find the model ID or model name to use. Click yes or no to continue.\n\nURL: {hf_search_url}")
 
 def get_available_langs() -> List[str]:
     """Returns:
