@@ -118,7 +118,7 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
             chat.write(output_file, write_wor=False)
             step_status = ["SUCCESSFUL"]
         except Exception as e:
-            step_status = traceback.format_exc(e).split("\n")
+            step_status = traceback.format_exc().split("\n")
             print(f"{input_file} had an error on step: {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}")
             traceback.print_exc()
         
