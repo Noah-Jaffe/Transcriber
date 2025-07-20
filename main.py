@@ -728,8 +728,6 @@ if __name__ == "__main__":
     if not CACHE_FILENAME.exists():
         CACHE_FILENAME.parent.mkdir(exist_ok=True, parents=True)
         shutil.copy(CACHE_DEFAULT, CACHE_FILENAME)
-    with open(CACHE_FILENAME,'r') as f:
-        print(f.read())
     root = tk.Tk()
     app = MainGUI(root=root)
     root.mainloop()
