@@ -20,6 +20,8 @@ from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 from PIL import Image, ImageTk
 import psutil
 from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
+from pathlib import Path
+import shutil
 
 # import logging
 
@@ -44,9 +46,11 @@ TOOLTIP_FONT = (MONO_FONT, 8, NORMAL)
 
 # functional config values
 HF_TOKEN_FILENAME = ".hftoken"
-MODELS_CFG_FILENAME = "cfg/models.json"
-CACHE_FILENAME = "cfg/cache.json"
-MASCOT_FILENAME = "cfg/mascot.png"
+MODELS_CFG_DEFAULT = "cfg/models.json"
+MODELS_CFG_FILENAME = "~/.cfg/models.json"
+CACHE_DEFAULT = "cfg/cache.json"
+CACHE_FILENAME = "~/.cfg/cache.json"
+MASCOT_FILENAME = "mascot.png"
 TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
 FFMPEG_EXE_DIR = os.path.abspath("tools")
 
@@ -715,6 +719,17 @@ def convert_file_to_type(inp_file: str, totype: str):
     return out_name
 
 if __name__ == "__main__":
+    # Make per user config files
+    MODELS_CFG_FILENAME =Path(MODELS_CFG_FILENAME).expanduser()
+    CACHE_FILENAME =Path(CACHE_FILENAME).expanduser()
+    if not MODELS_CFG_FILENAME.exists():
+        MODELS_CFG_FILENAME.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy(MODELS_CFG_DEFAULT, MODELS_CFG_FILENAME)
+    if not CACHE_FILENAME.exists():
+        CACHE_FILENAME.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy(CACHE_DEFAULT, CACHE_FILENAME)
+    with open(CACHE_FILENAME,'r') as f:
+        print(f.read())
     root = tk.Tk()
     app = MainGUI(root=root)
     root.mainloop()
