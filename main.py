@@ -11,7 +11,6 @@ import traceback
 import ffmpeg
 import pycountry
 import requests
-# import batchalign as ba
 import sys
 import subprocess
 import pathlib
@@ -22,8 +21,6 @@ import psutil
 from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
 from pathlib import Path
 import shutil
-
-# import logging
 
 # CONSTANTS/config
 class COLOR_THEME:
@@ -36,23 +33,37 @@ class COLOR_THEME:
 
 
 DEFAULT_FONT = "Helvetica" if sys.platform == "darwin" else "Arial"
+MONO_FONT = "Menlo" if sys.platform == "darwin" else "Consolas"
 LABEL_FONT = (DEFAULT_FONT, 12, BOLD)
 BUTTON_FONT = (DEFAULT_FONT, 12, NORMAL)
-# Font fallback for macOS
-MONO_FONT = "Menlo" if sys.platform == "darwin" else "Consolas"
 
 FILE_NAME_FONT = (MONO_FONT, 10, NORMAL)
 TOOLTIP_FONT = (MONO_FONT, 8, NORMAL)
 
+
+THIS_DIR = Path(__file__).parent.expanduser().resolve()
+
+# defaults
+TOOLS_DIR = "tools"
+CONFIG_FILES_DIRECTORY_REL = "cfg" 
+MODELS_FN = "models.json"
+CACHE_FN = "cache.json"
+
+MODELS_CFG_DEFAULT = Path(THIS_DIR, CONFIG_FILES_DIRECTORY_REL, MODELS_FN).expanduser().resolve()
+CACHE_DEFAULT = Path(THIS_DIR, CONFIG_FILES_DIRECTORY_REL, CACHE_FN).expanduser().resolve()
+
+# per user config file location
+PER_USER_ROOT = Path.home()
+PER_USER_CONFIG_FILES_DIRECTORY_REL = f".{CONFIG_FILES_DIRECTORY_REL}"
+MODELS_CFG_FILENAME = Path(PER_USER_ROOT, PER_USER_CONFIG_FILES_DIRECTORY_REL, MODELS_FN).expanduser().resolve()
+CACHE_FILENAME = Path(PER_USER_ROOT, PER_USER_CONFIG_FILES_DIRECTORY_REL, CACHE_FN).expanduser().resolve()
+
+
 # functional config values
-HF_TOKEN_FILENAME = ".hftoken"
-MODELS_CFG_DEFAULT = "cfg/models.json"
-MODELS_CFG_FILENAME = "~/.cfg/models.json"
-CACHE_DEFAULT = "cfg/cache.json"
-CACHE_FILENAME = "~/.cfg/cache.json"
-MASCOT_FILENAME = "mascot.png"
-TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
-FFMPEG_EXE_DIR = os.path.abspath("tools")
+HF_TOKEN_FILENAME = Path(THIS_DIR, ".hftoken").expanduser().resolve()
+MASCOT_FILENAME = Path(CONFIG_FILES_DIRECTORY_REL, "mascot.png").expanduser().resolve()
+TRANSCRIBE_SUBPROC_FILENAME = Path(THIS_DIR, "transcribe_proc.py").expanduser().resolve()
+FFMPEG_EXE_DIR = Path(TOOLS_DIR).expanduser().resolve()
 
 # add ffmpeg tools to path so that downstream modules can use it (specifically for windows)
 sys.path.append(FFMPEG_EXE_DIR)
@@ -239,8 +250,6 @@ See the README.md file for more info!"""
         if len(SelectedFileConfigElement.MANAGER) == 0:
             raise Exception("Please select a file to transcribe first!")
         
-        #shell, exepath = shellingham.detect_shell()
-        currloc = pathlib.Path(__file__).parent.resolve()
         mascot = self.show_mascot("IM TRANSCRIIIIBINNNG!!\nTRANSCRIPTION STARTED, DONT CLICK THE START TRANSCRIBE BUTTON AGAIN UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES AT THE SAME TIME!")
         #spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
         for item in SelectedFileConfigElement.MANAGER:
@@ -278,7 +287,7 @@ See the README.md file for more info!"""
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
-                    os.path.join(currloc, TRANSCRIBE_SUBPROC_FILENAME),
+                    TRANSCRIBE_SUBPROC_FILENAME,
                     json.dumps({
                         'input_file': item.get_file(), 
                         'num_speakers': item.get_speakers(), 
@@ -337,6 +346,10 @@ See the README.md file for more info!"""
         if os.path.isfile(CACHE_FILENAME):
             with open(CACHE_FILENAME, 'r', encoding='utf-8') as f:
                 self.cache = json.load(f)
+        else:
+            with open(CACHE_DEFAULT, 'r', encoding='utf-8') as f:
+                self.cache = json.load(f)
+         
     
     def update_cache(self):
         """Saves an updated cache file"""
@@ -722,6 +735,7 @@ if __name__ == "__main__":
     # Make per user config files
     MODELS_CFG_FILENAME =Path(MODELS_CFG_FILENAME).expanduser()
     CACHE_FILENAME =Path(CACHE_FILENAME).expanduser()
+    
     if not MODELS_CFG_FILENAME.exists():
         MODELS_CFG_FILENAME.parent.mkdir(exist_ok=True, parents=True)
         shutil.copy(MODELS_CFG_DEFAULT, MODELS_CFG_FILENAME)
