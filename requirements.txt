@@ -24,6 +24,6 @@ urllib3
 # torch
 # torchvision
 # torchaudio
-nemo-toolkit
+# nemo-toolkit
 #### if we fail on nemo-toolkit (I've seen this happen for windowa) comment the line above and uncomment the line below (line starting with # is a commented line)
-# nemo-toolkit @ git+https://github.com/NVIDIA/NeMo.git@main
+nemo-toolkit @ git+https://github.com/NVIDIA/NeMo.git@main
