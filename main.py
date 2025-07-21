@@ -13,7 +13,6 @@ import pycountry
 import requests
 import sys
 import subprocess
-import pathlib
 import json
 from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 from PIL import Image, ImageTk
