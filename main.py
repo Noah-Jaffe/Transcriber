@@ -1,17 +1,16 @@
 import os
 from time import sleep, time
 import tkinter as tk
-from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, Button, IntVar, Label, Spinbox, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font
+from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, IntVar, Label, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font, Button
+from tkinter.ttk import Combobox, Spinbox
 from tkinter.font import BOLD, ITALIC, NORMAL
 # from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Combobox
 from types import FunctionType
 from typing import List
 import traceback
 import ffmpeg
 import pycountry
 import requests
-# import batchalign as ba
 import sys
 import subprocess
 import pathlib
@@ -20,31 +19,53 @@ from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 from PIL import Image, ImageTk
 import psutil
 from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
+from pathlib import Path
+import shutil
 
-# import logging
-
-# CONSTANTS
+# CONSTANTS/config
 class COLOR_THEME:
-    IN_PROGRESS = "lightyellow"
-    LOADED = "aqua"
-    MAIN_WINDOW = "lightblue"
-    FAILED = "lightred"
-    COMPLETED = "green"
-    BUTTON = "pink"
+    IN_PROGRESS = "#FFFFE0"   # lightyellow
+    LOADED = "#00FFFF"        # aqua
+    MAIN_WINDOW = "#ADD8E6"   # lightblue
+    FAILED = "#E04545"        # lightred
+    COMPLETED = "#008000"     # green
+    BUTTON = "#FFC0CB"        # pink
 
-LABEL_FONT = ("Arial", 12, BOLD)
-BUTTON_FONT = ("Arial", 12, NORMAL)
-FILE_NAME_FONT = ("Consolas", 10, NORMAL)
-TOOLTIP_FONT = ("Consolas", 8, NORMAL)
 
-HF_TOKEN_FILENAME = ".hftoken"
-MODELS_CFG_FILENAME = "cfg/models.json"
-CACHE_FILENAME = "cfg/cache.json"
-MASCOT_FILENAME = "cfg/mascot.png"
-TRANSCRIBE_SUBPROC_FILENAME = "transcribe_proc.py"
-FFMPEG_EXE_DIR = "tools"
+DEFAULT_FONT = "Helvetica" if sys.platform == "darwin" else "Arial"
+MONO_FONT = "Menlo" if sys.platform == "darwin" else "Consolas"
+LABEL_FONT = (DEFAULT_FONT, 12, BOLD)
+BUTTON_FONT = (DEFAULT_FONT, 12, NORMAL)
 
-# add ffmpeg tools to path so that downstream modules can use it
+FILE_NAME_FONT = (MONO_FONT, 10, NORMAL)
+TOOLTIP_FONT = (MONO_FONT, 8, NORMAL)
+
+
+THIS_DIR = Path(__file__).parent.expanduser().resolve()
+
+# defaults
+TOOLS_DIR = "tools"
+CONFIG_FILES_DIRECTORY_REL = "cfg" 
+MODELS_FN = "models.json"
+CACHE_FN = "cache.json"
+
+MODELS_CFG_DEFAULT = Path(THIS_DIR, CONFIG_FILES_DIRECTORY_REL, MODELS_FN).expanduser().resolve()
+CACHE_DEFAULT = Path(THIS_DIR, CONFIG_FILES_DIRECTORY_REL, CACHE_FN).expanduser().resolve()
+
+# per user config file location
+PER_USER_ROOT = Path.home()
+PER_USER_CONFIG_FILES_DIRECTORY_REL = f".{CONFIG_FILES_DIRECTORY_REL}"
+MODELS_CFG_FILENAME = Path(PER_USER_ROOT, PER_USER_CONFIG_FILES_DIRECTORY_REL, MODELS_FN).expanduser().resolve()
+CACHE_FILENAME = Path(PER_USER_ROOT, PER_USER_CONFIG_FILES_DIRECTORY_REL, CACHE_FN).expanduser().resolve()
+
+
+# functional config values
+HF_TOKEN_FILENAME = Path(THIS_DIR, ".hftoken").expanduser().resolve()
+MASCOT_FILENAME = Path(CONFIG_FILES_DIRECTORY_REL, "mascot.png").expanduser().resolve()
+TRANSCRIBE_SUBPROC_FILENAME = Path(THIS_DIR, "transcribe_proc.py").expanduser().resolve()
+FFMPEG_EXE_DIR = Path(TOOLS_DIR).expanduser().resolve()
+
+# add ffmpeg tools to path so that downstream modules can use it (specifically for windows)
 sys.path.append(FFMPEG_EXE_DIR)
 
 
@@ -111,7 +132,7 @@ class MainGUI:
                 model_list.append(model)
         
         self.dropdown_selection_value = StringVar()
-        self.dropdown_model_selector = Combobox(self.frame_model_selection_line, values=model_list, textvariable=self.dropdown_selection_value)
+        self.dropdown_model_selector = Combobox(self.frame_model_selection_line, values=model_list, textvariable=self.dropdown_selection_value, width=35)
         
         reccomended = [self.cache.get('selectedModel','openai/whisper-small.en'),'openai/whisper-small.en', 'openai/whisper-medium.en', 'openai/whisper-small', 'openai/whisper-medium.en', model_list[0] if len(model_list) else None]
         for r in reccomended:
@@ -169,7 +190,7 @@ See the README.md file for more info!"""
         
         # console monitor
         # Create a ScrolledText widget inside the frame
-        # self.output_box = ScrolledText(self.root, wrap=tk.WORD, padx=5, pady=5, relief=SOLID, font=("consolas", 8, NORMAL), height=100)
+        # self.output_box = ScrolledText(self.root, wrap=tk.WORD, padx=5, pady=5, relief=SOLID, font=(MONO_FONT, 8, NORMAL), height=100)
         # self.output_box.pack(fill=BOTH, expand=True)
         # self.output_box.configure(state="disabled")
         # self.output_handler = CustomStdOut(self.output_box)
@@ -204,12 +225,12 @@ See the README.md file for more info!"""
         Returns:
             str: window size geometry f"{PxX}x{PxY}"
         """
-        return f"{max(self.root.winfo_screenwidth()/3, 800)}x{max(self.root.winfo_screenheight()/3,430)}"
+        return f"{max(self.root.winfo_screenwidth()//3, 800)}x{max(self.root.winfo_screenheight()//3,430)}"
     
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
         audio_video_types = get_audio_file_types() + get_video_file_types()
-        file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", ";".join([f"*.{x}" for x in audio_video_types])), ('All Files', "*.*")])
+        file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", " ".join([f"*.{x}" for x in audio_video_types])), ('All Files', " ".join(get_any_file_type()))])
         langs = list(get_available_langs())
         for file in file_paths:
             SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(file), min_speakers=1, max_speakers=99, languages=langs)
@@ -229,8 +250,6 @@ See the README.md file for more info!"""
         if len(SelectedFileConfigElement.MANAGER) == 0:
             raise Exception("Please select a file to transcribe first!")
         
-        #shell, exepath = shellingham.detect_shell()
-        currloc = pathlib.Path(__file__).parent.resolve()
         mascot = self.show_mascot("IM TRANSCRIIIIBINNNG!!\nTRANSCRIPTION STARTED, DONT CLICK THE START TRANSCRIBE BUTTON AGAIN UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES AT THE SAME TIME!")
         #spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
         for item in SelectedFileConfigElement.MANAGER:
@@ -268,7 +287,7 @@ See the README.md file for more info!"""
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
-                    f"{currloc}\\{TRANSCRIBE_SUBPROC_FILENAME}",
+                    TRANSCRIBE_SUBPROC_FILENAME,
                     json.dumps({
                         'input_file': item.get_file(), 
                         'num_speakers': item.get_speakers(), 
@@ -286,6 +305,7 @@ See the README.md file for more info!"""
             while proc.poll() == None:
                 try:
                     self.root.update_idletasks()
+                    sleep(0.1)
                     #proc.wait(timeout=1)
                 except:
                     pass
@@ -300,7 +320,7 @@ See the README.md file for more info!"""
         """Display the error to the user as a popup window"""
         err = traceback.format_exception(*args)
         print("\n".join(err), flush=True)
-        messagebox.showerror("Error!", f"{'\n'.join([str(a) for a in args[1].args])}\n\n\n\nPlease see the console for the full error message!")
+        messagebox.showerror("Error!", '\n'.join([str(a) for a in args[1].args]) + "\n\n\n\nPlease see the console for the full error message!")
     
     def get_model_list(self) -> List[str]:
         """
@@ -326,6 +346,10 @@ See the README.md file for more info!"""
         if os.path.isfile(CACHE_FILENAME):
             with open(CACHE_FILENAME, 'r', encoding='utf-8') as f:
                 self.cache = json.load(f)
+        else:
+            with open(CACHE_DEFAULT, 'r', encoding='utf-8') as f:
+                self.cache = json.load(f)
+         
     
     def update_cache(self):
         """Saves an updated cache file"""
@@ -343,8 +367,8 @@ See the README.md file for more info!"""
                     break
             if c == False:
                 cache["fileCache"] = cache.get("fileCache",[]) + [{"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}]
-        if not os.path.exists(os.path.dirname(CACHE_FILENAME)):
-            os.mkdir(os.path.pardir(CACHE_FILENAME))
+        if os.path.dirname(CACHE_FILENAME) and not os.path.exists(os.path.dirname(CACHE_FILENAME)):
+            os.mkdir(os.path.dirname(CACHE_FILENAME))
         with open(CACHE_FILENAME, 'w', encoding='utf-8') as f:
             json.dump(cache, indent=2, fp=f)
     
@@ -354,14 +378,27 @@ See the README.md file for more info!"""
         popup.title("AY, IM WORKIN ERE")
         popup.overrideredirect(True)  # Remove window decorations
         # Set window transparency attributes (Windows only)
-        popup.wm_attributes("-transparentcolor", "#f0f0f0")
+        if sys.platform.startswith("win"):
+          popup.wm_attributes("-transparentcolor", "#f0f0f0")
+        elif sys.platform == "darwin":
+        	# On macOS Big Sur+ you can get a similar effect
+          popup.attributes("-transparent", True)
+          popup.configure(background='systemTransparent')
+
+        else:
+          # other platforms – do nothing special
+          pass
+
         
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        
+        img = None
         # Load and scale the image
-        img = Image.open(MASCOT_FILENAME)
+        if os.path.isfile(MASCOT_FILENAME):
+            img = Image.open(MASCOT_FILENAME)
+        else:
+            img = Image.new('RGBA', (100, 100), (255, 0, 0, 0))
         img_ratio = img.width / img.height
         max_width, max_height = screen_width - 100, screen_height - 100  # Add padding
         if img.width > max_width or img.height > max_height:
@@ -382,7 +419,7 @@ See the README.md file for more info!"""
         popup.image = img_tk  # Keep a reference
         
         # Overlay text
-        text_label = tk.Label(popup, text=message, font=("Arial", 16, "bold"),
+        text_label = tk.Label(popup, text=message, font=(DEFAULT_FONT, 16, "bold"),
                           fg="black", bg="white", wraplength=img.width - 20)
         text_label.place(anchor=CENTER, y=(img.height // 3) * 2, x = img.width//2, width=img.width - 20)
         
@@ -409,8 +446,8 @@ class SelectedFileConfigElement:
         self.label_frame = Frame(self.row_frame, padx=0, pady=0)
         self.label_frame.pack(side=LEFT, expand=True, anchor="w", padx=0, pady=0)
         # insert file labels
-        self.path_label = Label(self.label_frame, text=f"{parentDir}{os.path.sep}", font=("consolas", 8, ITALIC), anchor="w", justify=LEFT)
-        self.file_label = Label(self.label_frame, text=filename, width=35, font=("consolas", 10, BOLD), anchor="w", justify=LEFT, )
+        self.path_label = Label(self.label_frame, text=f"{parentDir}{os.path.sep}", font=(MONO_FONT, 8, ITALIC), anchor="w", justify=LEFT)
+        self.file_label = Label(self.label_frame, text=filename, width=35, font=(MONO_FONT, 10, BOLD), anchor="w", justify=LEFT, )
         self.path_label.grid(row=0, column=0)
         self.file_label.grid(row=1, column=0)
         ToolTip(self.label_frame, f"File path to be transcribed:\n\t{self.filepath}")
@@ -448,8 +485,11 @@ class SelectedFileConfigElement:
         self.path_label.configure(bg=color)
     
     def set_clipboard_to_filepath(self, event):
-        self.parent.clipboard_clear()
-        self.parent.clipboard_append(self.filepath)
+        try:
+            self.parent.clipboard_clear()
+            self.parent.clipboard_append(self.filepath)
+        except:
+            print(f"Failed to set clipboard to:\n{self.filepath}")
     
     def get_pointer(self):
         return self.row_frame
@@ -461,7 +501,11 @@ class SelectedFileConfigElement:
         return self.filepath
     
     def get_speakers(self):
-        return int(self.spinbox_num_speakers.get())
+        v = self.spinbox_num_speakers.get()
+        if not v:
+            print(f'no num speakers given for {self.filepath}, defaulting to 1')
+            v = '1'  
+        return int(self.spinbox_num_speakers.get() or '1')
     
     def delete_row(self):
         self.row_frame.destroy()
@@ -610,8 +654,16 @@ def search_for_hf_model(query):
             return None
 
 def open_hf_search():
-    os.startfile("https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers")
-    spawn_popup_activity("Search", "Use the huggingface search to find the model ID or model name to use. Click yes or no to continue.")
+    hf_search_url = "https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers"
+    try:
+        import webbrowser
+        webbrowser.open(hf_search_url)
+    except:
+        try:
+            os.startfile(hf_search_url)
+        except:
+            print(f"Visit the following URL to find additional models from huggingface:\n{hf_search_url}")
+    spawn_popup_activity("Search", f"Use the huggingface search to find the model ID or model name to use. Click yes or no to continue.\n\nURL: {hf_search_url}")
 
 def get_available_langs() -> List[str]:
     """Returns:
@@ -629,6 +681,9 @@ def validate_language(inp):
     except LookupError as e:
         spawn_popup_activity("Language Error!", f"Unable to determine language: '{inp}'.\nValid language codes are:\nThe 2 letter code such as 'en', 'es', 'zh', etc.\nThe 3 letter code such as 'eng', 'spa', 'zho'\nThe full name such as 'english', 'spanish', 'chinese'.\nPress any button to continue.")
     return None
+
+def get_any_file_type() -> List[str]:
+	return ["*", ".*", "*.*"]
 
 def get_audio_file_types() -> List[str]:
     return [
@@ -677,6 +732,16 @@ def convert_file_to_type(inp_file: str, totype: str):
     return out_name
 
 if __name__ == "__main__":
+    # Make per user config files
+    MODELS_CFG_FILENAME =Path(MODELS_CFG_FILENAME).expanduser()
+    CACHE_FILENAME =Path(CACHE_FILENAME).expanduser()
+    
+    if not MODELS_CFG_FILENAME.exists():
+        MODELS_CFG_FILENAME.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy(MODELS_CFG_DEFAULT, MODELS_CFG_FILENAME)
+    if not CACHE_FILENAME.exists():
+        CACHE_FILENAME.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy(CACHE_DEFAULT, CACHE_FILENAME)
     root = tk.Tk()
     app = MainGUI(root=root)
     root.mainloop()
