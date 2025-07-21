@@ -6,7 +6,7 @@
 
 ## Requirements:
 - if you can, use cuda. (you need NVIDA GPU) https://pytorch.org/get-started/locally/ _do this before running the pip install requirements_
-- Python 3.9.x 
+- Python 3.11+ reccomended
 - internet (for model download, on the first time you use it)
 - if on MacOS/Linux, install ffmpeg to be made available by the command line
     - MacOS: `brew install ffmpeg`
