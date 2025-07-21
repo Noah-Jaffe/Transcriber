@@ -8,6 +8,7 @@ import traceback
 from types import FunctionType
 from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 import pycountry
+import soundfile
 # from CustomAiEngine import CustomAiEngine
 
 DEBUG_MODE = True
@@ -119,6 +120,9 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
             step_status = ["SUCCESSFUL"]
         except Exception as e:
             step_status = traceback.format_exc().split("\n")
+            # using the soundfile LibsndfileError is not required if you want to run bare-bones
+            if isinstance(e, soundfile.LibsndfileError):
+                step_status.append("The input file type is not supported! Please convert the file type manually and try again!")
             print(f"{input_file} had an error on step: {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}")
             traceback.print_exc()
         

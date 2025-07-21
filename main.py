@@ -20,6 +20,8 @@ import psutil
 from torch.cuda import is_available as is_cuda_available, mem_get_info as get_cuda_mem_info
 from pathlib import Path
 import shutil
+import soundfile
+from functools import lru_cache
 
 # CONSTANTS/config
 class COLOR_THEME:
@@ -213,11 +215,14 @@ See the README.md file for more info!"""
         
         for fn in self.cache.get("fileCache", []):
             if os.path.exists(fn['filepath']):
-                SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(fn['filepath']), min_speakers=fn['min_speakers'], max_speakers=fn['max_speakers'], languages=fn['languages'])
+                SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(fn['filepath']), min_speakers=fn['min_speakers'], max_speakers=fn['max_speakers'], languages=fn['languages'], ondestroy=self.update_cache)
     
     
     def __del__(self):
-        self.update_cache()
+        # try:
+        #     self.update_cache()
+        # except:
+            pass
     
     def get_initial_geometry(self) -> str:
         """
@@ -228,11 +233,15 @@ See the README.md file for more info!"""
     
     def select_new_files(self):
         """Selects new files to be added to the file managament list."""
-        audio_video_types = get_audio_file_types() + get_video_file_types()
-        file_paths = filedialog.askopenfilenames(filetypes=[("Audio/Video", " ".join([f"*.{x}" for x in audio_video_types])), ('All Files', " ".join(get_any_file_type()))])
+        self.update_cache()
+        supported_file_types = get_ffmpeg_supported_formats()
+        any_filetype = get_any_file_type()
+        file_paths = filedialog.askopenfilenames(filetypes=[("Supported Media", " ".join([f"*.{x}" for x in supported_file_types])), ('All Files', " ".join(any_filetype))])
         langs = list(get_available_langs())
         for file in file_paths:
-            SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(file), min_speakers=1, max_speakers=99, languages=langs)
+            SelectedFileConfigElement(self.frame_file_management_list, filepath=os.path.normpath(file), min_speakers=1, max_speakers=99, languages=langs, ondestroy=self.update_cache)
+
+        self.update_cache()
     
     def start_transcribe(self):
         """Starts the transcribe process in the background
@@ -240,17 +249,16 @@ See the README.md file for more info!"""
         Returns: 
             : @todo: pipe?
         """
+        self.update_cache()
         if not is_valid_model_id(self.dropdown_model_selector.get()):
             if not spawn_popup_activity("Error!", f"An issue occured when we attempted to get the\n\n{self.dropdown_model_selector.get()}\n\nmodel. Please verify your huggingface token allows for read permissions of the given model.\n\nYes to continue with default model, no to abort!"):
                 return
         
-        self.update_cache()
         selected_model = self.dropdown_selection_value.get()
         if len(SelectedFileConfigElement.MANAGER) == 0:
             raise Exception("Please select a file to transcribe first!")
         
-        mascot = self.show_mascot("IM TRANSCRIIIIBINNNG!!\nTRANSCRIPTION STARTED, DONT CLICK THE START TRANSCRIBE BUTTON AGAIN UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES AT THE SAME TIME!")
-        #spawn_popup_activity(title="TRANSCRIBING!", message="TRANSCRIPTION STARTED, DONT CLICK THE BUTTON UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES")
+        mascot = self.show_mascot("IM TRANSCRIIIIBINNNG!!\nTRANSCRIPTION STARTED, DONT CLICK THE START TRANSCRIBE BUTTON AGAIN UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED FILES AT THE SAME TIME!")
         for item in SelectedFileConfigElement.MANAGER:
             valid = validate_language(item.get_lang())
             if valid is None:
@@ -314,6 +322,7 @@ See the README.md file for more info!"""
             pass
         self.root.title("Transcriber")
         # spawn_popup_activity("Transcriber", "Completed transcribing the files!")
+        print("Completed transcribing the latest batch!")
     
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
@@ -357,17 +366,22 @@ See the README.md file for more info!"""
             cache["modelCache"] = cache.get('modelCache',[]) + [str(x) for x in self.dropdown_model_selector['values'] if str(x) not in cache.get('modelCache', [])]
         if self.dropdown_selection_value.get():
             cache["selectedModel"] = self.dropdown_selection_value.get() or self.cache.get("selectedModel", None)
-        for entry in (SelectedFileConfigElement.MANAGER):
-            c = False
-            for idx in range(len(cache.get("fileCache",[]))):
-                if entry.filepath == cache["fileCache"][idx].get("filepath"):
-                    cache["fileCache"][idx] = {"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}
-                    c = True
-                    break
-            if c == False:
-                cache["fileCache"] = cache.get("fileCache",[]) + [{"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}]
-        if os.path.dirname(CACHE_FILENAME) and not os.path.exists(os.path.dirname(CACHE_FILENAME)):
-            os.mkdir(os.path.dirname(CACHE_FILENAME))
+        cache["fileCache"] = [
+            {"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}
+            for entry in SelectedFileConfigElement.MANAGER
+        ]
+        # for entry in (SelectedFileConfigElement.MANAGER):
+        #     c = False
+        #     for idx in range(len(cache.get("fileCache",[]))):
+        #         print(entry.filepath, cache["fileCache"][idx].get("filepath"))
+        #         if Path(entry.filepath) == Path(cache["fileCache"][idx].get("filepath")):
+        #             cache["fileCache"][idx] = {"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}
+        #             c = True
+        #             break
+        #     if c == False:
+        #         cache["fileCache"] = cache.get("fileCache",[]) + [{"filepath": entry.filepath, "min_speakers": entry.min_speakers, "max_speakers": entry.max_speakers, "languages": [entry.lang_combo.get(), *[x for x in entry.lang_combo['values'] if x != entry.lang_combo.get()]]}]
+        if not CACHE_FILENAME.exists():
+            CACHE_FILENAME.parent.mkdir(exist_ok=True, parents=True)
         with open(CACHE_FILENAME, 'w', encoding='utf-8') as f:
             json.dump(cache, indent=2, fp=f)
     
@@ -378,15 +392,14 @@ See the README.md file for more info!"""
         popup.overrideredirect(True)  # Remove window decorations
         # Set window transparency attributes (Windows only)
         if sys.platform.startswith("win"):
-          popup.wm_attributes("-transparentcolor", "#f0f0f0")
+            popup.wm_attributes("-transparentcolor", "#f0f0f0")
         elif sys.platform == "darwin":
-        	# On macOS Big Sur+ you can get a similar effect
-          popup.attributes("-transparent", True)
-          popup.configure(background='systemTransparent')
-
+            # On macOS Big Sur+ you can get a similar effect
+            popup.attributes("-transparent", True)
+            popup.configure(background='systemTransparent')
         else:
-          # other platforms – do nothing special
-          pass
+            # other platforms – do nothing special
+            pass
 
         
         # Get screen dimensions
@@ -434,7 +447,8 @@ See the README.md file for more info!"""
 
 class SelectedFileConfigElement:
     MANAGER = []
-    def __init__(self, parent, filepath, min_speakers, max_speakers, languages):
+    def __init__(self, parent, filepath, min_speakers, max_speakers, languages, ondestroy):
+        self.ondestroy = ondestroy
         self.parent = parent
         self.filepath = filepath
         parentDir, filename = os.path.split(self.filepath)
@@ -509,6 +523,11 @@ class SelectedFileConfigElement:
     def delete_row(self):
         self.row_frame.destroy()
         SelectedFileConfigElement.MANAGER.remove(self)
+        try:
+            if self.ondestroy and '__call__' in dir(self.ondestroy):
+                self.ondestroy()
+        except:
+            pass
 
 
 class ToolTip(object):
@@ -530,8 +549,11 @@ class ToolTip(object):
         ToolTip.ACTIVE_TOOLTIPS.append(self)
     
     def __del__(self):
-        self.hidetip()
-        ToolTip.ACTIVE_TOOLTIPS.remove(self)
+        try:
+            self.hidetip()
+            ToolTip.ACTIVE_TOOLTIPS.remove(self)
+        except:
+            pass
     
     @staticmethod
     def hideall():
@@ -682,26 +704,45 @@ def validate_language(inp):
     return None
 
 def get_any_file_type() -> List[str]:
-	return ["*", ".*", "*.*"]
+    return ["*", ".*", "*.*"]
 
 def get_audio_file_types() -> List[str]:
-    return [
-        "3gp", "aa", "aac", "aax", "act", "aiff", "alac", "amr", 
-        "ape", "au", "awb", "dss", "dvf", "flac", "gsm", "iklax", 
-        "ivs", "m4a", "m4b", "m4p", "mmf", "movpkg", "mp3", "mpc", 
-        "msv", "nmf", "ogg", "oga", "mogg", "opus", "ra", "rm", 
-        "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", 
-        "wv", "webm", "8svx", "cda"
-    ]
+    """Supported audio file types that dont need to be converted
+
+    Returns:
+        list of file extentions
+    """
+    # if its not usable by the soundfile package then it will cause an error to be thrown
+    return [t.lower() for t in soundfile.available_formats().keys()]
+
+@lru_cache(maxsize=1)
+def get_ffmpeg_supported_formats():
+    result = subprocess.run(
+        ['ffmpeg', '-formats'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True  # decode to string instead of bytes
+    )
+
+    ret = set()
+    for line in result.stdout.split('\n'):
+        if not line:
+            continue
+        sections = [x for x in line.split(' ') if x]
+        if len(sections) < 2:
+            continue
+        filetypes = sections[1].lower().split(',')
+        ret |= set(filetypes)
+    if len(ret) < 10:
+        # something went wrong
+        print("Ensure that ffmpeg is installed correctly!")
+    return sorted(ret)
 
 def get_video_file_types() -> List[str]:
     return [
-        "webm", "mkv", "flv", "flv", "vob", "ogv", "ogg", "drc",
-        "gifv", "mng", "avi", "MTS", "M2TS", "TS", "mov", "qt", 
-        "wmv", "yuv", "rm", "rmvb", "viv", "asf", "amv", "mp4", 
-        "m4p (with DRM)", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv",
-        "mpg", "mpeg", "m2v", "m4v", "svi", "3gp", "3g2", "mxf", 
-        "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b"
+        "webm", "mkv", "flv", "avi", "mov", "mp4", "m4v", "mpeg", 
+        "mpg", "mpeg", "m2v", "m4v", "f4v", "f4p", "f4a", "f4b",
+        "evo", "divx", "m4a"
     ]
 
 def convert_file_to_type(inp_file: str, totype: str):
@@ -728,12 +769,13 @@ def convert_file_to_type(inp_file: str, totype: str):
         )
     except ffmpeg.Error as e:
         print(e.stderr, file=sys.stderr)
+        print(f"Failed to convert '{inp_file}' to '{totype}'! Please attempt to convert it to '{totype}' manually and retrying!")
     return out_name
 
 if __name__ == "__main__":
     # Make per user config files
-    MODELS_CFG_FILENAME =Path(MODELS_CFG_FILENAME).expanduser()
-    CACHE_FILENAME =Path(CACHE_FILENAME).expanduser()
+    MODELS_CFG_FILENAME = Path(MODELS_CFG_FILENAME).expanduser()
+    CACHE_FILENAME = Path(CACHE_FILENAME).expanduser()
     
     if not MODELS_CFG_FILENAME.exists():
         MODELS_CFG_FILENAME.parent.mkdir(exist_ok=True, parents=True)

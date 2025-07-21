@@ -19,6 +19,8 @@ ffmpeg-python==0.2.0
 nemo-toolkit
 nemo-toolkit[asr]
 
+soundfile
+
 #### dont install torch, torchvision, and torchaudio by default
 # torch
 # torchvision
