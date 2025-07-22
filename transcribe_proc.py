@@ -1,3 +1,4 @@
+from time import sleep
 import batchalign as ba
 from tkinter import messagebox
 import os
@@ -120,9 +121,15 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
             step_status = ["SUCCESSFUL"]
         except Exception as e:
             step_status = traceback.format_exc().split("\n")
+            # begin non barebones
             # using the soundfile LibsndfileError is not required if you want to run bare-bones
             if isinstance(e, soundfile.LibsndfileError):
                 step_status.append("The input file type is not supported! Please convert the file type manually and try again!")
+            if type(activity).__name__ == "Whisper" and type(e).__name__ == 'TypeError':
+                # assume it is one of the TypeError: '<=' not supported between instances of 'NoneType' and 'float' errors, so we split up the file and re-run on those, then re-join them at the end?
+                step_status.append("An unexpected error occured while transcribing this file. A potential work-around is to re-run the transcriber on the split files and join them automatically.")
+                
+            # end non barebones
             print(f"{input_file} had an error on step: {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}")
             traceback.print_exc()
         

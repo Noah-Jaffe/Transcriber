@@ -2,7 +2,7 @@ import os
 from time import sleep, time
 import tkinter as tk
 from tkinter import BOTH, CENTER, E, LEFT, RIGHT, SOLID, TOP, W, X, IntVar, Label, StringVar, Tk, Toplevel, filedialog, Frame, messagebox, font, Button
-from tkinter.ttk import Combobox, Spinbox
+from tkinter.ttk import Checkbutton, Combobox, Spinbox
 from tkinter.font import BOLD, ITALIC, NORMAL
 # from tkinter.scrolledtext import ScrolledText
 from types import FunctionType
@@ -63,7 +63,7 @@ CACHE_FILENAME = Path(PER_USER_ROOT, PER_USER_CONFIG_FILES_DIRECTORY_REL, CACHE_
 # functional config values
 HF_TOKEN_FILENAME = Path(THIS_DIR, ".hftoken").expanduser().resolve()
 MASCOT_FILENAME = Path(CONFIG_FILES_DIRECTORY_REL, "mascot.png").expanduser().resolve()
-TRANSCRIBE_SUBPROC_FILENAME = Path(THIS_DIR, "transcribe_proc.py").expanduser().resolve()
+TRANSCRIBE_SUBPROC_FILENAME = Path(THIS_DIR, "transcribe_proc_workaround_errors.py").expanduser().resolve()
 FFMPEG_EXE_DIR = Path(TOOLS_DIR).expanduser().resolve()
 
 # add ffmpeg tools to path so that downstream modules can use it (specifically for windows)
@@ -185,6 +185,11 @@ See the README.md file for more info!"""
         self.button_start_transcribe = Button(self.root, text="Start Transcribe", command=self.start_transcribe, font=BUTTON_FONT, bg=COLOR_THEME.BUTTON)
         self.button_start_transcribe.pack(pady=5)
         ToolTip(self.button_start_transcribe, text="Click here to start transcribing the files in the list!\nNote: If the transcription seems off, try running it again! Its possible the AI gets different results each time.")
+        
+        # self.auto_retry_failures = tk.BooleanVar()
+        # self.checkbox_auto_retry_failures = Checkbutton(root,text="Auto-retry failures", variable=self.auto_retry_failures)
+        # self.checkbox_auto_retry_failures.pack(pady=20)
+        # ToolTip(self.checkbox_auto_retry_failures, text="Some errors that are faults of the AI can be caught and we can try to find a way to fix them on our end. This may take 2-4 times as long as transcribing the original file as we ")
         
         # self.dbgbutn = Button(self.root, text="dbgbutton", command=lambda: self.show_mascot("IM TRANSCRIIIIBINNNG!!\nTRANSCRIPTION STARTED, DONT CLICK THE START TRANSCRIBE BUTTON AGAIN UNLESS YOU WANT MULTIPLE TRANSCRIPTIONS RUNNING FOR THE SELECTED THINGIES AT THE SAME TIME!"))
         # self.dbgbutn.pack()
