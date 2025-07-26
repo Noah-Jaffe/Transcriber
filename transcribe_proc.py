@@ -1,13 +1,10 @@
 from time import sleep
 import batchalign as ba
-from tkinter import messagebox
 import os
 import subprocess
 import sys
 import json
 import traceback
-from types import FunctionType
-from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 import pycountry
 import soundfile
 # from CustomAiEngine import CustomAiEngine
@@ -33,9 +30,13 @@ def debug_get_version() -> str:
     return f'{commit_hash} | {diffs}'
 
 def open_file(file_path):
-    # this process is blocking so we dont do it for now so that we can run through the rest of the files given by the UI component
+    """Open the file for the user to see.
+
+    Args:
+        file_path (str): file path to be opened
+    """
     try:
-        # win & mac
+        # windows & mac
         subprocess.call(["open", file_path])
     except:
         try:
@@ -43,20 +44,27 @@ def open_file(file_path):
             subprocess.call(["xdg-open", file_path])
         except:
             try:
-                # win
+                # windows
                 os.startfile(file_path)
             except:
                 print(f"READY TO OPEN FILE: {file_path}", flush=True)
 
-def spawn_popup_activity(title, message, yes=None, no=None):
-    result = messagebox.askyesno(title=title, message=message)
-    if result and yes and type(yes) == FunctionType:
-        return yes()
-    elif not result and no and type(no) == FunctionType:
-        return no()
-
-
 def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
+    """Transcribe an audio file.
+    Applies the following pipelines:
+        - whisper,
+        - diarization (if num_speakers > 1)
+        - disfluency,
+        - retrace,
+        - morphosyntax (temporarily disabled),
+        - utterance,
+        - force alignment
+    Args:
+        input_file (str): input audio/video file to be transcribed
+        model_name (str, optional): huggingface id of the model to be used. Defaults to talkbank's default model.
+        num_speakers (int, optional): _description_. Defaults to 2.
+        lang (str, optional): _description_. Defaults to "eng".
+    """
     debug_logs = []
     debug_logs.append(f"Transcriber version: {debug_get_version()}")
     debug_logs.append(f"Args: {input_file} {model_name} {num_speakers} {lang}")
@@ -70,9 +78,12 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     except:
         lang = 'eng'
     # transcribe
-    # whisper = CustomAiEngine(model=model_name, lang=lang)
     whisper = ba.WhisperEngine(model=model_name, lang=lang)
-
+    
+    # @todo in the future enable us to use any form of AI tool
+    #   this will require us to normalize the tool's output.
+    # whisper = CustomAiEngine(model=model_name, lang=lang)
+    
     # split by speaker
     diarization = ba.NemoSpeakerEngine(num_speakers=num_speakers)
 
@@ -96,12 +107,13 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         whisper,
         diarization if num_speakers > 1 else None,
         disfluency,
-        retrace,  # uncertain how this benefits us
+        retrace,
         # morphosyntax,
         utr,
         fa
     ] if action]
     
+    # rename the file so that it does not overwrite any existing files
     n = 0
     output_file = f"{input_file}{'_'+str(n) if n > 0 else ''}.cha"
     while 1:
@@ -109,7 +121,11 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         if not os.path.exists(output_file):
             break
         n += 1
+
+    # initalize the .cha file using the batchalign tools
     doc = ba.Document.new(media_path=input_file, lang=lang)
+
+    # roll through the pipeline and attempt to execute each activity
     for idx, activity in enumerate(pipeline_activity, start=1):
         step_status = ["Started"]
         nlp = ba.BatchalignPipeline(activity)
@@ -117,6 +133,7 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
             print(f"{input_file} - starting pipeline action: {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}")
             doc = nlp(doc)
             chat = ba.CHATFile(doc=doc)
+            # write to disk after each successful step
             chat.write(output_file, write_wor=False)
             step_status = ["SUCCESSFUL"]
         except Exception as e:
@@ -133,23 +150,26 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
             print(f"{input_file} had an error on step: {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}")
             traceback.print_exc()
         
+        # format the @debug lines for the output file
         for i, line in enumerate(step_status, start=1):
             debug_logs.append(f"Step {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')} - {i}/{len(step_status)} - {line}")
 
         print(f"Step {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}\n" + "\n".join(step_status))
 
     if DEBUG_MODE:
+        # write the @debug lines to the .cha file
         with open(output_file,'a',encoding='utf-8') as f:
             f.write(f"\n{DEBUG_PREAMBLE}\n")
             f.write("\n".join([f"{DEBUG_LINE_PREFIX} {line}" for line in debug_logs]))
+    
     print(f"Completed transcription for {input_file}! The output file can be found directly next to the input file in your file system with a '.cha' file extension: {output_file}", flush=True)
-    # uncomment this next block if you want the output file to automatically open
-    # return spawn_popup_activity(title="COMPLETED!",message=f"Completed transcription of\n{input_file}\nOutput file can be found here:\n{output_file}\nOpen file now?", yes=lambda: open_file(output_file))
+    
+    # open the file when we are done for the users convenience
     open_file(output_file)
 
 
-
 if __name__ == "__main__":
+    # on startup, read in the command line options to determine the parameters for the transcribe function
     print(sys.argv, flush=True)
     for data in sys.argv[1:]:
         try:

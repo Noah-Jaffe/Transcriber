@@ -22,7 +22,7 @@ from pathlib import Path
 import shutil
 import soundfile
 from functools import lru_cache
-
+import datetime, re
 # CONSTANTS/config
 class COLOR_THEME:
     IN_PROGRESS = "#FFFFE0"   # lightyellow
@@ -269,7 +269,10 @@ See the README.md file for more info!"""
             if valid is None:
                 spawn_popup_activity('WARNING!','Transcript process DID NOT START.\nPlease fix the errors and try again.')
                 return
-        
+        start = time()
+        parsetime = 0
+        twords = 0
+        runtime = datetime.timedelta(0)
         for item in SelectedFileConfigElement.MANAGER:
             # needs conversion?
             if not (item.get_file().split('.')[-1] in get_audio_file_types()):
@@ -296,6 +299,9 @@ See the README.md file for more info!"""
             #     if (get_cuda_mem_info()[1]/(2**30) > 10):
             #         # has big cuda
             #         priority_points += 1
+            pstart = datetime.datetime.now()
+            d = soundfile.info(item.get_file()).duration
+            print(f"Starting timer for ({d}) '{item.get_file()}'")
             proc = subprocess.Popen(
                 args=[
                     sys.executable,
@@ -321,6 +327,15 @@ See the README.md file for more info!"""
                     #proc.wait(timeout=1)
                 except:
                     pass
+            ptime = datetime.datetime.now() - pstart
+            runtime += ptime
+            parsetime += d
+            estwordcount = f"{item.get_file()}.cha"
+            est_word_count = 0
+            if os.path.isfile(estwordcount):
+                with open(estwordcount, 'r', encoding='utf-8') as f:
+                    est_word_count = sum([len([w for w in re.sub(r"^\*\w+:\s*(.*?)\s*\.\s*$", "\\1", l, count=0, flags=re.MULTILINE | re.IGNORECASE).replace(r'\s*[/]\s*',' ').split()]) for l in f.readlines() if re.match(r'^\*\w+:\s*(.*?)\s*\.\s*(?:\u0015.*?\u0015)?\s*$', l, re.MULTILINE|re.IGNORECASE)])
+            print(f"Took {ptime} to transcribe ~{est_word_count} words from ({soundfile.info(item.get_file()).duration}) '{item.get_file()}' using {}")
         try:
             mascot.destroy()
         except:
@@ -328,6 +343,7 @@ See the README.md file for more info!"""
         self.root.title("Transcriber")
         # spawn_popup_activity("Transcriber", "Completed transcribing the files!")
         print("Completed transcribing the latest batch!")
+        print(f"Took {runtime} to transcribe ~{twords} words from ({parsetime}) across {len(SelectedFileConfigElement.MANAGER)} files!")
     
     def show_error(self, *args):
         """Display the error to the user as a popup window"""
