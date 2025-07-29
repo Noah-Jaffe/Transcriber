@@ -27,9 +27,13 @@ def debug_get_version() -> str:
     """
     Returns: a version string for the active transcriber (will also tell us if the user has changed any files)
     """
-    commit_hash = subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'rev-parse', 'HEAD']).decode('ascii').strip()
-    diffs = ", ".join([f'*{fn}' for fn in subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'diff', '--name-only']).decode('ascii').strip().replace('\r\n','\n').split('\n')])
-    return f'{commit_hash} | {diffs}'
+    try:
+        commit_hash = subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'rev-parse', 'HEAD']).decode('ascii').strip()
+        diffs = ", ".join([f'*{fn}' for fn in subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'diff', '--name-only']).decode('ascii').strip().replace('\r\n','\n').split('\n')])
+        return f'{commit_hash} | {diffs}'
+    except subprocess.CalledProcessError as e:
+        return f'UNKNOWN-NON-GIT'
+
 
 def open_file(file_path):
     # this process is blocking so we dont do it for now so that we can run through the rest of the files given by the UI component
