@@ -66,9 +66,10 @@ MASCOT_FILENAME = Path(CONFIG_FILES_DIRECTORY_REL, "mascot.png").expanduser().re
 TRANSCRIBE_SUBPROC_FILENAME = Path(THIS_DIR, "transcribe_proc.py").expanduser().resolve()
 FFMPEG_EXE_DIR = Path(TOOLS_DIR).expanduser().resolve()
 
-# add ffmpeg tools to path so that downstream modules can use it (specifically for windows)
-sys.path.append(FFMPEG_EXE_DIR)
-
+# locate ffmpeg path
+FFMPEG_PATH = shutil.which('ffmpeg') or (shutil.which('ffmpeg', path=FFMPEG_EXE_DIR) if sys.platform.startswith("win") else None)
+# locate git path
+GIT_PATH = shutil.which('git')
 
 # @todo if they ask for it, give an in window output text box to display
 # the output instead of printing to the shell
@@ -270,10 +271,13 @@ See the README.md file for more info!"""
             if not (item.get_file().split('.')[-1] in get_audio_file_types()):
                 # looks like it probably needs conversion
                 ntype = ".mp3"
-                print(f"Converting {item.get_file()} to mp3 type so that it can be transcribed!")
-                item.filepath = convert_file_to_type(item.get_file(), ntype)
-                print(f"Convertion completed! Audio file can be found {item.get_file()}")
-            
+                converted = convert_file_to_type(item.get_file(), ntype)
+                if converted is None:
+                    with open(f"{item.get_file()}.cha", 'a', encoding='utf-8') as f:
+                        f.write(f"\nFatal error during transcribe:\nFailed to convert the source file {item.get_file()} to {ntype}! Manually try to convert the file to .mp3 and run that through the transcriber!\n")
+                    continue
+                else:
+                    item.filepath = converted
             # priority_levels = [
             #     psutil.NORMAL_PRIORITY_CLASS, # normal,
             #     psutil.ABOVE_NORMAL_PRIORITY_CLASS, # above normal
@@ -717,13 +721,27 @@ def get_audio_file_types() -> List[str]:
 
 @lru_cache(maxsize=1)
 def get_ffmpeg_supported_formats():
-    result = subprocess.run(
-        ['ffmpeg', '-formats'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True  # decode to string instead of bytes
-    )
-
+    try:
+        result = subprocess.run(
+            ['ffmpeg', '-formats'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,  # decode to string instead of bytes
+        )
+    except Exception as e:
+        print(e)
+        try:
+            result = subprocess.run(
+                ['ffmpeg', '-formats'],
+                executable=FFMPEG_PATH,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,  # decode to string instead of bytes
+            )
+        except Exception as e:
+            print(e)
+            print("TRANSCRIBER ERROR: Is FFMPEG installed correctly?\nTRANSCRIBER ERROR: We cannot support auto-converting files!")
+            return ['mp3', 'mp4', 'wav']
     ret = set()
     for line in result.stdout.split('\n'):
         if not line:
@@ -761,6 +779,7 @@ def convert_file_to_type(inp_file: str, totype: str):
         # assume it has already converted the file
         print(f"Using cached version of {inp_file}!")
         return out_name
+    print(f"Converting {inp_file} to {totype} type so that it can be transcribed!")
     try:
         out, err = (ffmpeg
             .input(inp_file)
@@ -770,8 +789,23 @@ def convert_file_to_type(inp_file: str, totype: str):
     except ffmpeg.Error as e:
         print(e.stderr, file=sys.stderr)
         print(f"Failed to convert '{inp_file}' to '{totype}'! Please attempt to convert it to '{totype}' manually and retrying!")
+        return None
+    print(f"Convertion completed! Output file can be found at '{out_name}'")
     return out_name
 
+def validate_requirements():
+    has_errors = False
+    # validate for ffmpeg
+    if not FFMPEG_PATH:
+        print("> TRANSCRIBER WARNING!\n>> FFMPEG not found!\n>>> We will not be able to convert files automatically!\n>>> Reccomendations to fix:\n>>>>   - Install ffmpeg and add the installed ...ffmpeg/bin directory to your system PATH variables.\n>>>>   OR\n>>>>   - Manaually convert the input files to one of '.mp3', '.mp4', or '.wav' so that the AI will be able to accept the file!\n\n")
+        has_errors = True
+    # validate for git
+    if not GIT_PATH:
+        print("> TRANSCRIBER WARNING\n>> GIT not found!\n>>> We will not be able to generate the @debug logs properly!")
+        has_errors = True
+    if has_errors:
+        print("> TRANSCRIBER WARNING: Please see the latest README.md (https://github.com/Noah-Jaffe/Transcriber/blob/main/README.md) and follow the full requirements and install guide to fix these issues!")
+    
 if __name__ == "__main__":
     # Make per user config files
     MODELS_CFG_FILENAME = Path(MODELS_CFG_FILENAME).expanduser()
@@ -783,6 +817,9 @@ if __name__ == "__main__":
     if not CACHE_FILENAME.exists():
         CACHE_FILENAME.parent.mkdir(exist_ok=True, parents=True)
         shutil.copy(CACHE_DEFAULT, CACHE_FILENAME)
+    
+    validate_requirements()
+    
     root = tk.Tk()
     app = MainGUI(root=root)
     root.mainloop()
