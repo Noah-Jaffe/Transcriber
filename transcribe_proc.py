@@ -99,7 +99,7 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         whisper,
         diarization if num_speakers > 1 else None,
         disfluency,
-        retrace,  # uncertain how this benefits us
+        retrace,
         # morphosyntax,
         utr,
         fa
