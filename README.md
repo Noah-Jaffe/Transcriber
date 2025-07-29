@@ -71,11 +71,11 @@ _If you already have the requirement read through the step to make sure you have
         - If you downloaded a zip file follow these steps:
             - Unzip (or move the unzipped files) to `C:/Program Files/ffmpeg`
                 The results should look like the following:
-                ![example](docs\ffmpeg_install_windows_manual.png)
+                ![example](docs/ffmpeg_install_windows_manual.png)
             - Add the `C:/Program Files/ffmpeg/bin` (or wherever you downloaded it to + `/bin`) to your system environment PATH variable
                 - in windows bar search, type "`env`" and follow the arrows in the image below
                 - when you click "new" enter `C:\Program Files\ffmpeg\bin`. DO NOT EDIT ANY OTHER LINE THAT IS ALREADY THERE!
-                ![example](docs\update_system_env_path.png)
+                ![example](docs/update_system_env_path.png)
 
 1. **CUDA**
     - If you can, use CUDA to increase performance when running the AI.
@@ -117,7 +117,7 @@ _If you already have the requirement read through the step to make sure you have
 1. If on windows and did not select the `"enable symbolic links"` option when installing **GIT**, do the following: 
     - Enable symbolic links on your machine.
     - Open the Local group policy editor and add your account user to the following:
-    ![Follow these steps](docs\readme_add_symlinks.png)
+    ![Follow these steps](docs/readme_add_symlinks.png)
 
 ---
 # How to install:
