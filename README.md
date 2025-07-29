@@ -79,7 +79,8 @@
 1. **CUDA**
     - If you can, use CUDA to increase performance when running the AI.
     - __NOTE: You will probably need a NVIDIA GPU for this.__
-    - See here to install: [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)
+    - [Install CUDA](https://docs.nvidia.com/cuda/cuda-quick-start-guide/)
+    - If this sounds like gibberish to you, it is safe to skip this step. Your AI models will run off of just your CPU.
 
 1. **Python's tkinter** needs to be installed
     - If you installed python with the installer and selected the tk/tcl and IDLE options, you should have this step completed already.
@@ -96,67 +97,66 @@
     ![Follow these steps](docs/readme_add_symlinks.png)
 
 1. **The Transcriber**:
-    - Now that you have all of the requirements installed we will install the Transcriber from git
-        1. Open your choice terminal window
-            - Reccomended to use `Powershell` or `git bash` on windows, use default terminal on Mac/linux
-        1. use "cd" to change directory to where you want to install the transcriber
-            example: to your Documents folder:
-            `cd ~/Documents`
-        1. Clone the Transcriber repo:
-            `git clone https://github.com/Noah-Jaffe/Transcriber.git`
-            _NOTE: If you get the error: `fatal: destination path 'Transcriber' already exists and is not an empty directory.`, you will need to either delete the existing Transcriber folder, or rename the existing one. Or install to a custom directory by replacing NEW_FOLDER_NAME in the following command: `git clone https://github.com/Noah-Jaffe/Transcriber.git NEW_FOLDER_NAME`._
-        1. Enter the Transcriber directory in the terminal
-            `cd Transcriber` or `cd ~/Documents/Transcriber`
-        1. Setup a python virtual environment if you want, skip this step if you are unfamiliar.
-            `python -m venv .venv`
-            - <a id="start-activate-venv"></a>Start/Activate your virtual python environment with
-                - Windows 
-                    - Powershell `./.venv/Scripts/activate`
-                    - git bash `source ./.venv/Scripts/activate`
-                - MacOS/Linux
-                    - `source ./.venv/bin/activate`
+Now that you have all of the requirements installed we will install the Transcriber from git
+    1. Open your choice terminal window
+        - Reccomended to use `Powershell` or `git bash` on windows, use default terminal on Mac/linux
+    1. use "cd" to change directory to where you want to install the transcriber
+        example: to your Documents folder:
+        `cd ~/Documents`
+    1. Clone the Transcriber repo:
+        `git clone https://github.com/Noah-Jaffe/Transcriber.git`
+        _NOTE: If you get the error: `fatal: destination path 'Transcriber' already exists and is not an empty directory.`, you will need to either delete the existing Transcriber folder, or rename the existing one. Or install to a custom directory by replacing NEW_FOLDER_NAME in the following command: `git clone https://github.com/Noah-Jaffe/Transcriber.git NEW_FOLDER_NAME`._
+    1. Enter the Transcriber directory in the terminal
+        `cd Transcriber` or `cd ~/Documents/Transcriber`
+    1. Setup a python virtual environment if you want, skip this step if you are unfamiliar.
+        `python -m venv .venv`
+        - <a id="start-activate-venv"></a>Start/Activate your virtual python environment with
+            - Windows 
+                - Powershell `./.venv/Scripts/activate`
+                - git bash `source ./.venv/Scripts/activate`
+            - MacOS/Linux
+                - `source ./.venv/bin/activate`
 
-        1. <a id="pip install"></a>`pip install -r requirements.txt`
-            - if the pip install fails try `pip install -r explicit_requirements.txt --no-cache`
-            - if that fails, [report the issue to the maintainer or your point of contact](https://github.com/Noah-Jaffe/Transcriber/issues)
-            - The only requirements not in the txt files are `torch` `torchaudio` and `torchvision`
-        1. Install requirements not in requirements.txt
+    1. <a id="pip install"></a>`pip install -r requirements.txt`
+        - if the pip install fails try `pip install -r explicit_requirements.txt --no-cache`
+        - if that fails, [report the issue to the maintainer or your point of contact](https://github.com/Noah-Jaffe/Transcriber/issues)
+        - The only requirements not in the txt files are `torch` `torchaudio` and `torchvision`
+    1. Install requirements not in requirements.txt
 
-            - If you have a CUDA compatible GPU:
-                - [Install CUDA](https://docs.nvidia.com/cuda/cuda-quick-start-guide/) if you have not done so already.
-                - You may need to `pip uninstall torch torchaudio torchvision` before doing this next step.
-                - [Reinstall `torch` `torchaudio` and `torchvision` with your appropriate build](https://pytorch.org/get-started/locally/)
-                    - Example for if you have a CUDA compatible device for 12.6 you would run: `pip install torch torchvision torchaudio --no-cache -U --index-url https://download.pytorch.org/whl/cu126`
-            - Otherwise if you dont have a CUDA compatible GPU or dont know what that means then run the next line:
-                - `pip install torch torchaudio torchvision`
-        1. Put your [Huggingface token](https://huggingface.co/docs/hub/en/security-tokens) in a file named `.hftoken`.
-            - `.hftoken` only, `.hftoken.txt` will not work
-                ![Your directory should look something like this](docs/hftoken.png)
-            - Generating the token:
-                - You may need to create an account, you can skip all the optional steps except for verifying your email.
-                - You can name the token anything, just save the token to a file called `.hftoken` to your machine.
-                - The token does not need any special permissions, you can deselect all of the options.
+        - If you are using CUDA:
+            - You may need to `pip uninstall torch torchaudio torchvision` before doing this next step.
+            - See here to reinstall `torch` `torchaudio` and `torchvision` with your appropriate build: [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)
+                - Example for if you have a CUDA compatible device for 12.6 you would run: `pip install torch torchvision torchaudio --no-cache -U --index-url https://download.pytorch.org/whl/cu126`
+        - Otherwise if you dont have a CUDA compatible GPU or dont know what that means then run the next line:
+            - `pip install torch torchaudio torchvision`
+    1. Put your [Huggingface token](https://huggingface.co/docs/hub/en/security-tokens) in a file named `.hftoken`.
+        - `.hftoken` only, `.hftoken.txt` will not work
+            ![Your directory should look something like this](docs/hftoken.png)
+        - Generating the token:
+            - You may need to create an account, you can skip all the optional steps except for verifying your email.
+            - You can name the token anything, just save the token to a file called `.hftoken` to your machine.
+            - The token does not need any special permissions, you can deselect all of the options.
 
-        1. If you want to make a one click startup script, you could do so now.
-            - Example for windows:
-                Save anywhere as "`Transcribe.ps1`"
-                ```sh
-                cd ~/Documents/Transcriber
-                # if you used a virtual environment uncomment the next line (remove the #)
-                #./venv/Scripts/activate
-                python main.py
-                ```
-            - Example for Mac/Linux
-                Save anywhere as "`Transcribe.sh`"
-                ```
-                #!/bin/bash
-                cd ~/Documents/Transcriber
-                # if you used a virtual environment uncomment the next line (remove the #)
-                # source .venv/bin/activate
-                python main.py
-                ```
-                _You may need to run `chmod +x Transcriber.sh` on the new .sh file to give it permissions to execute_
-            - _NOTE: You might need to do some additional research for how to do this properly for your machine._
+    1. If you want to make a one click startup script, you could do so now.
+        - Example for windows:
+            Save anywhere as "`Transcribe.ps1`"
+            ```sh
+            cd ~/Documents/Transcriber
+            # if you used a virtual environment uncomment the next line (remove the #)
+            #./venv/Scripts/activate
+            python main.py
+            ```
+        - Example for Mac/Linux
+            Save anywhere as "`Transcribe.sh`"
+            ```
+            #!/bin/bash
+            cd ~/Documents/Transcriber
+            # if you used a virtual environment uncomment the next line (remove the #)
+            # source .venv/bin/activate
+            python main.py
+            ```
+            _You may need to run `chmod +x Transcriber.sh` on the new .sh file to give it permissions to execute_
+        - _NOTE: You might need to do some additional research for how to do this properly for your machine._
 1. Continue to the [using the transcriber](#using-the-transcriber) step.
         
 ---
