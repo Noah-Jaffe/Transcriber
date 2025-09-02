@@ -182,14 +182,20 @@ Now that you have all of the requirements installed we will install the Transcri
 
 ### Help, I got a `TypeError: ... not supported between instances of 'NoneType' and 'float'`!
 
-If you run into the following errors specifically in the Whisper (Step 1), know that this is an error of the AI and not entirely in our control. 
+If you run into the following errors specifically in the Whisper (Step 1), know that this is an error of the AI and may not entirely be in our control.
 > `TypeError: '<=' not supported between instances of 'NoneType' and 'float'`
 
 > `TypeError: '>' not supported between instances of 'NoneType' and 'float'`
 
-The only known current workaround is to split up the original file into smaller segments and run the smaller segments through the transcriber again. eventually you may hit a small section of the original audio file that crashes constantly, for that you will have to transcribe by hand.
+One patch for this is to use python package `transformers==4.38.2`.
 
-_v1.1.0_ is in the works with an automated fix for this
+To attempt patch #1:
+- If using a virtual environment start/activate that now. [See here](#start-activate-venv)
+- Run `pip install transformers==4.38.2`
+
+If you are already using this version of transformers, I'm sorry but the only known workaround is to split up the original file into smaller segments, and run the smaller segments through the transcriber again. Eventually you may hit a small section of the original audio file that crashes constantly, for that you will have to transcribe by hand.
+
+*NOTE: v1.1.0 is in the works with an automated fix for this*
 
 ### How to update my Transcriber app?
 
