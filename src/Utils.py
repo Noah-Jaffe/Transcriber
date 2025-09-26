@@ -302,3 +302,26 @@ def get_model_list():
                 models[r['id']] = r
     models = sorted(models, key = lambda k: models[k].get('downloads', models[k].get('likes', 0)), reverse=True)
     return models
+
+def validate_requirements():
+    """Ensure we have 3rd party software accessable.
+
+    Returns:
+        bool: True if there are errors, otherwise, False.
+    """
+    has_errors = False
+    # locate ffmpeg path
+    FFMPEG_PATH = shutil.which('ffmpeg') or (shutil.which('ffmpeg', path=FFMPEG_EXE_DIR) if sys.platform.startswith("win") else None)
+    # locate git path
+    GIT_PATH = shutil.which('git')
+
+    if not FFMPEG_PATH:
+        print("> TRANSCRIBER WARNING!\n>> FFMPEG not found!\n>>> We will not be able to convert files automatically!\n>>> Reccomendations to fix:\n>>>>   - Install ffmpeg and add the installed ...ffmpeg/bin directory to your system PATH variables.\n>>>>   OR\n>>>>   - Manaually convert the input files to one of '.mp3', '.mp4', or '.wav' so that the AI will be able to accept the file!\n\n")
+        has_errors = True
+    # validate for git
+    if not GIT_PATH:
+        print("> TRANSCRIBER WARNING\n>> GIT not found!\n>>> We will not be able to generate the @debug logs properly!")
+        has_errors = True
+    if has_errors:
+        print("> TRANSCRIBER WARNING: Please see the latest README.md (https://github.com/Noah-Jaffe/Transcriber/blob/main/README.md) and follow the full requirements and install guide to fix these issues!")
+    return has_errors
