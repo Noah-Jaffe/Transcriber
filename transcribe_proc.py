@@ -1,12 +1,38 @@
-from time import sleep
+__doc__ = """transcribe_proc.py
+The transcribe process!
+To run directly from the command line:
+
+    python transcribe_proc.py [jsonified_string]
+
+Where the `jsonified_string` is jsonified object of the arguments for the transcribe_file function.
+
+Valid arguments for the transcribe_file function:
+    input_file (str): input audio/video file to be transcribed
+    model_name (str, optional): huggingface id of the model to be used. Defaults to talkbank's default model.
+    num_speakers (int, optional): number of speakers to be diarized for, 1 to skip this step in the pipeline. Defaults to 2.
+    lang (str, optional): 3 letter language code for the assumed language. Defaults to "eng".
+
+The following lines are all valid examples to run this file:
+    # Run a single file:
+    python transcribe_proc.py '{"input_file": "../path/to/my/file.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 2, "lang": "eng"}'
+
+    # Run multiple files:
+    python transcribe_proc.py '[ {"input_file": "../path/to/my/file.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 2, "lang": "eng"}, {"input_file": "../path/to/my/file2.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 3, "lang": "spa"} ]'
+    python transcribe_proc.py '{"input_file": "../path/to/my/file.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 2, "lang": "eng"}' '{"input_file": "../path/to/my/file2.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 3, "lang": "spa"}'
+"""
+
 import batchalign as ba
+from tkinter import messagebox
 import os
 import subprocess
 import sys
 import json
 import traceback
+from types import FunctionType
+from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 import pycountry
 import soundfile
+from datetime import datetime
 # from CustomAiEngine import CustomAiEngine
 
 DEBUG_MODE = True
@@ -25,9 +51,13 @@ def debug_get_version() -> str:
     """
     Returns: a version string for the active transcriber (will also tell us if the user has changed any files)
     """
-    commit_hash = subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'rev-parse', 'HEAD']).decode('ascii').strip()
-    diffs = ", ".join([f'*{fn}' for fn in subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'diff', '--name-only']).decode('ascii').strip().replace('\r\n','\n').split('\n')])
-    return f'{commit_hash} | {diffs}'
+    try:
+        commit_hash = subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'rev-parse', 'HEAD']).decode('ascii').strip()
+        diffs = ", ".join([f'*{fn}' for fn in subprocess.check_output(['git', '-C', os.path.dirname(__file__), 'diff', '--name-only']).decode('ascii').strip().replace('\r\n','\n').split('\n')])
+        return f'{commit_hash} | {diffs}'
+    except subprocess.CalledProcessError as e:
+        return f'UNKNOWN-NON-GIT'
+
 
 def open_file(file_path):
     """Open the file for the user to see.
@@ -49,6 +79,14 @@ def open_file(file_path):
             except:
                 print(f"READY TO OPEN FILE: {file_path}", flush=True)
 
+def spawn_popup_activity(title, message, yes=None, no=None):
+    result = messagebox.askyesno(title=title, message=message)
+    if result and yes and type(yes) == FunctionType:
+        return yes()
+    elif not result and no and type(no) == FunctionType:
+        return no()
+
+
 def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     """Transcribe an audio file.
     Applies the following pipelines:
@@ -62,8 +100,8 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     Args:
         input_file (str): input audio/video file to be transcribed
         model_name (str, optional): huggingface id of the model to be used. Defaults to talkbank's default model.
-        num_speakers (int, optional): _description_. Defaults to 2.
-        lang (str, optional): _description_. Defaults to "eng".
+        num_speakers (int, optional): number of speakers to be diarized for, 1 to skip this step in the pipeline. Defaults to 2.
+        lang (str, optional): 3 letter language code for the assumed language. Defaults to "eng".
     """
     debug_logs = []
     debug_logs.append(f"Transcriber version: {debug_get_version()}")
@@ -167,16 +205,38 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     # open the file when we are done for the users convenience
     open_file(output_file)
 
+def parse_cli_args():
+    """Parse the sys.argv values for the input parameters (or list of them)
 
-if __name__ == "__main__":
-    # on startup, read in the command line options to determine the parameters for the transcribe function
+    Returns:
+        dict[]: array of argument dicts for the transcribe_file function
+    """
+    to_transcribe = []
     print(sys.argv, flush=True)
     for data in sys.argv[1:]:
         try:
             args = json.loads(data)
         except:
             print(f"Failed to parse input data: {data}")
+            print(__doc__)
             continue
-        print("Attempting to transcribe for:", args.get('input_file',args), flush=True)
-        transcribe_file(**args)
-        print("Attempt completed for:", sys.argv[1:], flush=True)
+        if type(args) == dict:
+            args = [args]
+        if type(args) != list:
+            print(f"Failed to process input data: {data}")
+            continue
+        to_transcribe.append(args)
+    return to_transcribe
+
+def main():
+    """ Entry point for the script! """
+    # on startup, read in the command line options to determine the parameters for the transcribe function
+    items_to_be_transcribed = parse_cli_args()
+    for item in items_to_be_transcribed:
+        print(f"{datetime.now()} Attempting to transcribe for: {item.get('input_file', item)}", flush=True)
+        # dont put the function call in a try catch, if it fails we want it to dump a full stacktrace
+        transcribe_file(**item)
+        print(f"{datetime.now()} Attempt completed for: {item.get('input_file', item)}", flush=True)
+
+if __name__ == "__main__":
+    main()
