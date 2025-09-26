@@ -225,7 +225,7 @@ def parse_cli_args():
         if type(args) != list:
             print(f"Failed to process input data: {data}")
             continue
-        to_transcribe.append(args)
+        to_transcribe += args
     return to_transcribe
 
 def main():
