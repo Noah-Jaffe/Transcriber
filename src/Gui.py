@@ -72,7 +72,7 @@ class MainGUI(tk.Tk):
             self.data_model_list = []
         print("Models found.")
         
-        self.title("Transcriber")
+        self.title("Transcribble")
         self.minsize(600, 300)
         
         self.grid_rowconfigure(1, weight=1)
@@ -235,6 +235,10 @@ class MainGUI(tk.Tk):
         activity_button_row.grid(row=2, column=0, sticky="EWS", padx=10)
         
         
+        # Start transcribe button
+        self.footer_button_start_transcribe = tk.Button(activity_button_row, text="About", command=self.show_about, font=(BUTTON_FONT[0], int(BUTTON_FONT[1]*0.8), "italic"), bg=COLOR_THEME.BUTTON)
+        self.footer_button_start_transcribe.pack(side="left", anchor="n")
+
         # Start transcribe button
         self.footer_button_start_transcribe = tk.Button(activity_button_row, text="Start Transcribe", command=self.start_transcribe, font=BUTTON_FONT, bg=COLOR_THEME.BUTTON)
         self.footer_button_start_transcribe.pack(side="right", anchor="n")
@@ -490,6 +494,9 @@ class MainGUI(tk.Tk):
         # spawn_popup_activity("Transcriber", "Completed transcribing the files!")
         print("Completed transcribing the latest batch!")
         print(f"Took {runtime} to transcribe ~{twords} words from ({parsetime}) across {len(self.data_file_entries)} files!")
+    
+    def show_about(self):
+        messagebox.showinfo('About Transcribble', 'https://github.com/Noah-Jaffe/Transcribble\n\nJaffe, N., & Lurie, S. (2025). *Jaffe-Lurie Transcribble* [Computer software]. GitHub. https://github.com/Noah-Jaffe/Transcribble\n\nPlease see the README.md file for more info!')
     
 if __name__ == "__main__":
     from Utils import setup_local_user_cfgs
