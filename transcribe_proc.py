@@ -7,10 +7,12 @@ To run directly from the command line:
 Where the `jsonified_string` is jsonified object of the arguments for the transcribe_file function.
 
 Valid arguments for the transcribe_file function:
-    input_file (str): input audio/video file to be transcribed
+    input_file (str): File path for input file to be transcribed.
     model_name (str, optional): huggingface id of the model to be used. Defaults to talkbank's default model.
     num_speakers (int, optional): number of speakers to be diarized for, 1 to skip this step in the pipeline. Defaults to 2.
     lang (str, optional): 3 letter language code for the assumed language. Defaults to "eng".
+    open_after (bool, optional): To open the file afterwards or not. Defaults to True.
+    debug (bool, optional): To include @debug lines or not in the output file. Defaults to True.
 
 The following lines are all valid examples to run this file:
     # Run a single file:
@@ -20,7 +22,6 @@ The following lines are all valid examples to run this file:
     python transcribe_proc.py '[ {"input_file": "../path/to/my/file.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 2, "lang": "eng"}, {"input_file": "../path/to/my/file2.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 3, "lang": "spa"} ]'
     python transcribe_proc.py '{"input_file": "../path/to/my/file.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 2, "lang": "eng"}' '{"input_file": "../path/to/my/file2.mp3", "model_name": "openai/whisper-tiny", "num_speakers": 3, "lang": "spa"}'
 """
-
 import batchalign as ba
 from tkinter import messagebox
 import os
@@ -35,7 +36,6 @@ import soundfile
 from datetime import datetime
 # from CustomAiEngine import CustomAiEngine
 
-DEBUG_MODE = True
 
 DEBUG_LINE_PREFIX = "@DEBUG"
 DEBUG_PREAMBLE = "\n".join([f"{DEBUG_LINE_PREFIX} {line}" for line in [
@@ -57,6 +57,8 @@ def debug_get_version() -> str:
         return f'{commit_hash} | {diffs}'
     except subprocess.CalledProcessError as e:
         return f'UNKNOWN-NON-GIT'
+    except:
+        return 'UNKNOWN VERSION!'
 
 
 def open_file(file_path):
@@ -87,7 +89,7 @@ def spawn_popup_activity(title, message, yes=None, no=None):
         return no()
 
 
-def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
+def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng", open_after=True, debug=True, **kwargs):
     """Transcribe an audio file.
     Applies the following pipelines:
         - whisper,
@@ -98,14 +100,17 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
         - utterance,
         - force alignment
     Args:
-        input_file (str): input audio/video file to be transcribed
+        input_file (str): File path for input file to be transcribed.
         model_name (str, optional): huggingface id of the model to be used. Defaults to talkbank's default model.
         num_speakers (int, optional): number of speakers to be diarized for, 1 to skip this step in the pipeline. Defaults to 2.
         lang (str, optional): 3 letter language code for the assumed language. Defaults to "eng".
+        open_after (bool, optional): To open the file afterwards or not. Defaults to True.
+        debug (bool, optional): To include @debug lines or not in the output file. Defaults to True.
     """
     debug_logs = []
-    debug_logs.append(f"Transcriber version: {debug_get_version()}")
-    debug_logs.append(f"Args: {input_file} {model_name} {num_speakers} {lang}")
+    log_line = debug_logs.append if debug else print
+    log_line(f"Transcriber version: {debug_get_version()}")
+    log_line(f"Args: {input_file} {model_name} {num_speakers} {lang} {open_after} {debug}")
 
     try:
         num_speakers = int(num_speakers)
@@ -194,7 +199,7 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
 
         print(f"Step {idx}/{len(pipeline_activity)} - {(type(activity).__name__).replace('Engine','')}\n" + "\n".join(step_status))
 
-    if DEBUG_MODE:
+    if debug:
         # write the @debug lines to the .cha file
         with open(output_file,'a',encoding='utf-8') as f:
             f.write(f"\n{DEBUG_PREAMBLE}\n")
@@ -202,8 +207,11 @@ def transcribe_file(input_file, model_name=None, num_speakers=2, lang="eng"):
     
     print(f"Completed transcription for {input_file}! The output file can be found directly next to the input file in your file system with a '.cha' file extension: {output_file}", flush=True)
     
-    # open the file when we are done for the users convenience
-    open_file(output_file)
+    if open_after:
+        # open the file when we are done for the users convenience
+        open_file(output_file)
+
+    return output_file
 
 def parse_cli_args():
     """Parse the sys.argv values for the input parameters (or list of them)
@@ -223,7 +231,7 @@ def parse_cli_args():
         if type(args) == dict:
             args = [args]
         if type(args) != list:
-            print(f"Failed to process input data: {data}")
+            
             continue
         to_transcribe += args
     return to_transcribe
