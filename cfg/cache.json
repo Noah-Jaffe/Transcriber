@@ -17,5 +17,5 @@
   ],
   "fileCache": [],
   "debugMode": true,
-  "autoRetryFailuresMode": false
+  "openWhenDone": true
 }

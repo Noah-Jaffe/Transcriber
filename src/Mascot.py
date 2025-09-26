@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import CENTER, ttk
 from PIL import Image, ImageTk
 
-from Config import *
+from src.Config import *
 
 class Mascot():
     """Show a mascot with a custom message."""
@@ -13,9 +13,9 @@ class Mascot():
             message ([optional]str): Message to overlay on the mascot.
         """
         super().__init__()
-        self.is_root = True if parent else False
+        self.is_root = False if parent else True
         
-        if not self.is_root == None:
+        if self.is_root is None:
             parent = tk.Tk()
         
         if message is not None:
@@ -69,8 +69,8 @@ class Mascot():
 
         if message is not None:
             # Overlay text
-            text_label = tk.Label(self, text=message, font=(DEFAULT_FONT, 16, "bold"),
-                            fg="black", bg="white", wraplength=img.width - 20)
+            text_label = tk.Label(self.popup, text=message, font=(DEFAULT_FONT, 16, "bold"),
+                            fg="#010101", bg="white", wraplength=img.width - 20)
             text_label.place(anchor=CENTER, y=(img.height // 3) * 2, x = img.width//2, width=img.width - 20)
         
         # Position window

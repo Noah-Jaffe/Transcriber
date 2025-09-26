@@ -1,4 +1,4 @@
-from Config import *
+from src.Config import *
 from tkinter import LEFT, SOLID, Toplevel
 from tkinter.ttk import Label
 

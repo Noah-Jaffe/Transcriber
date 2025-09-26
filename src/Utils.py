@@ -12,8 +12,8 @@ import os
 from tkinter import messagebox
 from types import FunctionType
 import ffmpeg
-from Config import *
-
+from src.Config import *
+from huggingface_hub.hf_api import repo_exists as is_valid_model_id
 
 def normalize_path(*path):
     """Gets a normalized path
@@ -201,7 +201,6 @@ def convert_file_to_type(inp_file: str, totype: str):
         print(f"Failed to convert '{inp_file}' to '{totype}'! Please attempt to convert it to '{totype}' manually and retrying!")
     return out_name
 
-
 def decode_int(encoded: str, base_chars: str='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') -> int:
     """Converts a string representing an int in the given base_chars of characters to an integer.
 
@@ -285,3 +284,21 @@ def get_hf_token():
         hf_token = f.read().strip()
     return hf_token
 
+def get_model_list():
+    """
+    Gets an updated list of models
+    Returns:
+        List[str]: List of available model names
+    """
+    models = {}
+    models_to_search = []
+    if os.path.isfile(MODELS_CFG_FILENAME):
+        with open(MODELS_CFG_FILENAME, 'r', encoding='utf-8') as f:
+            models_to_search = json.load(f)
+    for q in models_to_search:
+        results = get_hf_search_query(**q)
+        for r in results:
+            if r.get('pipeline_tag') == 'automatic-speech-recognition':
+                models[r['id']] = r
+    models = sorted(models, key = lambda k: models[k].get('downloads', models[k].get('likes', 0)), reverse=True)
+    return models
